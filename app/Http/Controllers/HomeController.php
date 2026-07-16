@@ -16,7 +16,7 @@ class HomeController extends Controller
     /**
      * Handle the incoming request.
      */
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): \Inertia\Response
     {
         // 1. Validate incoming request into a strict DTO using Spatie Laravel Data
         $searchData = HomeSearchData::from($request->all());

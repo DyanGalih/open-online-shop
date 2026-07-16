@@ -12,9 +12,9 @@ class HomeService
     /**
      * Get the general product catalog.
      * 
-     * @return \Spatie\LaravelData\DataCollection
+     * @return \Illuminate\Support\Collection<int, \App\Data\ProductData>
      */
-    public function getGeneralCatalog()
+    public function getGeneralCatalog(): Collection
     {
         // Mocked implementation for now, should query Eloquent
         $products = collect([
@@ -28,9 +28,9 @@ class HomeService
     /**
      * Get categories list.
      * 
-     * @return \Spatie\LaravelData\DataCollection
+     * @return \Illuminate\Support\Collection<int, \App\Data\CategoryData>
      */
-    public function getCategories()
+    public function getCategories(): Collection
     {
         $categories = collect([
             (object)['id' => 1, 'name' => 'Electronics', 'slug' => 'electronics'],
@@ -42,8 +42,11 @@ class HomeService
 
     /**
      * Get personalized content for the user.
+     *
+     * @param mixed $user
+     * @return array<string, mixed>
      */
-    public function getPersonalizedContent($user): array
+    public function getPersonalizedContent(mixed $user): array
     {
         if (!$user) {
             return [];
@@ -63,8 +66,11 @@ class HomeService
 
     /**
      * Search products based on DTO.
+     *
+     * @param \App\Data\HomeSearchData $dto
+     * @return \Illuminate\Support\Collection<int, \App\Data\ProductData>
      */
-    public function searchProducts(HomeSearchData $dto)
+    public function searchProducts(HomeSearchData $dto): Collection
     {
         // For now, return empty collection to satisfy the signature
         return ProductData::collect(collect([]));
