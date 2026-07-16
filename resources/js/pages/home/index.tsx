@@ -1,30 +1,26 @@
-import React, { useState } from 'react';
 import { Head, router } from '@inertiajs/react';
-import { Layout, Typography, Row, Col, theme } from 'antd';
-import SearchForm from '@/components/home/search-form';
-import CategoryList from '@/components/home/category-list';
-import ProductGrid from '@/components/home/product-grid';
-import PersonalizedWidget from '@/components/home/personalized-widget';
-import SearchModal from '@/components/home/search-modal';
-import CartDrawer from '@/components/home/cart-drawer';
-import HeroSection from '@/components/home/hero-section';
-import FooterSection from '@/components/home/footer-section';
-import CustomizerSection from '@/components/home/customizer-section';
-import BenefitsSection from '@/components/home/benefits-section';
-import ReviewsSection from '@/components/home/reviews-section';
-
+import { Layout, Typography } from 'antd';
 import { Search, Heart, ShoppingBasket } from 'lucide-react';
+import React, { useState } from 'react';
+import BenefitsSection from '@/components/home/benefits-section';
+import CartDrawer from '@/components/home/cart-drawer';
+import CustomizerSection from '@/components/home/customizer-section';
+import FooterSection from '@/components/home/footer-section';
+import HeroSection from '@/components/home/hero-section';
+import PersonalizedWidget from '@/components/home/personalized-widget';
+import ProductGrid from '@/components/home/product-grid';
+import ReviewsSection from '@/components/home/reviews-section';
+import SearchForm from '@/components/home/search-form';
+import SearchModal from '@/components/home/search-modal';
 
-const { Header, Content, Sider } = Layout;
+
+const { Header, Content } = Layout;
 const { Title } = Typography;
 
-export default function Index({ products, categories, personalized, filters, auth }: any) {
+export default function Index({ products, categories, personalized, auth }: any) {
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     
-    const {
-        token: { colorBgContainer, borderRadiusLG },
-    } = theme.useToken();
 
     const handleSearch = (values: any) => {
         router.get('/', values, { preserveState: true, replace: true });
