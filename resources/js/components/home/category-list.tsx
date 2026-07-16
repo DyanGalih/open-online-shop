@@ -1,5 +1,5 @@
-import React from 'react';
 import { Menu } from 'antd';
+import React from 'react';
 
 interface CategoryListProps {
     categories: Array<{ id: number; name: string, slug: string }>;

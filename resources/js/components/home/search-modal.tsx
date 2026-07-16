@@ -1,6 +1,6 @@
-import React from 'react';
 import { Modal, Input } from 'antd';
 import { Wand2, Search } from 'lucide-react';
+import React from 'react';
 
 interface SearchModalProps {
     isOpen: boolean;
