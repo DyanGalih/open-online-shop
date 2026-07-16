@@ -1,5 +1,8 @@
 # Online Shop Application
 
+> [!WARNING]
+> **DEVELOPMENT STAGE**: This application is currently in active development. Features, architecture, and deployment steps are subject to change. Do not use in a production environment without careful review.
+
 This repository contains the application code for the Online Shop platform. 
 
 The application is built with a **Mobile-First UX** approach to deliver a seamless, app-like web experience. It features full online payment integration and delivery management.
