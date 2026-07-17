@@ -1,55 +1,75 @@
-import { Row, Col, Typography } from 'antd';
+import { Star } from 'lucide-react';
 import React from 'react';
 
-const { Title } = Typography;
-
 export default function ReviewsSection() {
+    const reviews = [
+        {
+            text: '"My minimal ceramic mug and scented soy candle arrived in beautiful, sustainable packaging. The craftsmanship is wonderful and fits perfectly with my home decor."',
+            name: 'Aria Kim',
+            product: 'Home & Living Collection',
+            avatarBg: '#ebe5e0',
+        },
+        {
+            text: '"The canvas tote bag is sturdy and spacious, perfect for my everyday commute. I love the simple, elegant design and the philosophy behind it."',
+            name: 'Lucas Vance',
+            product: 'Canvas Everyday Tote',
+            avatarBg: '#e8ece6',
+        },
+        {
+            text: '"Sleek, minimalist watch! The muted colors and clean aesthetic look very premium. Delivery was fast and customer service was incredibly helpful."',
+            name: 'Emma Rose',
+            product: 'Classic Minimal Watch',
+            avatarBg: '#f3e8e6',
+        },
+    ];
+
     return (
-        <div style={{ background: '#FFFBF5' }}>
-            <div className="!px-4 md:!px-12" style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <div id="reviews" style={{ padding: '60px 0', textAlign: 'center' }}>
-                    <Title level={2}>Stories from Cozy Parents</Title>
-                    <p style={{ color: '#6b7280', marginBottom: 40 }}>Read true reviews of sweet, gentle doll parents who welcomed a buddy home.</p>
-                    <Row gutter={[32, 32]}>
-                <Col xs={24} md={8}>
-                    <div style={{ background: '#fff', padding: 30, borderRadius: 24, border: '1px solid #e5e7eb', textAlign: 'left' }}>
-                        <p style={{ fontStyle: 'italic', color: '#4b5563', marginBottom: 20 }}>"My custom pastel bear arrived with a lovely adoption plate. Hand-sewn detailing is absolutely marvelous and incredibly soft."</p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
-                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#F2C1C1' }}></div>
+        <section id="reviews" className="w-full bg-[#fbf9f6] py-20 font-sans">
+            <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
+                <h2 className="mb-2 font-serif text-3xl text-[#333333] md:text-4xl">
+                    Customer Stories
+                </h2>
+                <p className="mx-auto mb-12 max-w-lg text-[#666666]">
+                    Read what our community has to say about bringing simple,
+                    beautiful things into their daily lives.
+                </p>
+
+                <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+                    {reviews.map((r, idx) => (
+                        <div
+                            key={idx}
+                            className="flex flex-col justify-between border border-[#eaeaea] bg-white p-8 text-left"
+                        >
                             <div>
-                                <strong>Emma Rose</strong>
-                                <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Adopted Lavender Bunny</div>
+                                <div className="mb-4 flex space-x-0.5 text-[#e8c07d]">
+                                    <Star className="h-3.5 w-3.5 fill-current" />
+                                    <Star className="h-3.5 w-3.5 fill-current" />
+                                    <Star className="h-3.5 w-3.5 fill-current" />
+                                    <Star className="h-3.5 w-3.5 fill-current" />
+                                    <Star className="h-3.5 w-3.5 fill-current" />
+                                </div>
+                                <p className="mb-6 text-sm leading-relaxed text-[#4b5563] italic md:text-base">
+                                    {r.text}
+                                </p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                                <div
+                                    className="h-10 w-10 flex-shrink-0 rounded-full"
+                                    style={{ backgroundColor: r.avatarBg }}
+                                />
+                                <div>
+                                    <strong className="block text-sm text-[#333333]">
+                                        {r.name}
+                                    </strong>
+                                    <span className="text-[11px] text-[#666666]">
+                                        {r.product}
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </Col>
-                <Col xs={24} md={8}>
-                    <div style={{ background: '#fff', padding: 30, borderRadius: 24, border: '1px solid #e5e7eb', textAlign: 'left' }}>
-                        <p style={{ fontStyle: 'italic', color: '#4b5563', marginBottom: 20 }}>"I configured a wizard cat doll for my little sibling. They carry him everywhere! Ordering custom options was smooth on my smartphone."</p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
-                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#D3C5EE' }}></div>
-                            <div>
-                                <strong>Lucas Vance</strong>
-                                <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Custom Designer</div>
-                            </div>
-                        </div>
-                    </div>
-                </Col>
-                <Col xs={24} md={8}>
-                    <div style={{ background: '#fff', padding: 30, borderRadius: 24, border: '1px solid #e5e7eb', textAlign: 'left' }}>
-                        <p style={{ fontStyle: 'italic', color: '#4b5563', marginBottom: 20 }}>"Sensational palette curation! The soft, low-contrast dusty colors harmonize perfectly with clean minimalist decor. Highly recommend."</p>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
-                            <div style={{ width: 40, height: 40, borderRadius: '50%', background: '#EADAA9' }}></div>
-                            <div>
-                                <strong>Aria Kim</strong>
-                                <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>Adopted Peach Bear</div>
-                            </div>
-                        </div>
-                    </div>
-                </Col>
-            </Row>
+                    ))}
                 </div>
             </div>
-        </div>
+        </section>
     );
 }
