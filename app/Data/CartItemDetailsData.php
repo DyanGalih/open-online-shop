@@ -4,12 +4,12 @@ namespace App\Data;
 
 use Spatie\LaravelData\Data;
 
-class CategoryData extends Data
+class CartItemDetailsData extends Data
 {
     public function __construct(
-        public ?string $id,
+        public int $id,
         public string $name,
-        public string $slug,
-        public ?string $description = null,
+        public int $price,
+        public int $quantity,
     ) {}
 }

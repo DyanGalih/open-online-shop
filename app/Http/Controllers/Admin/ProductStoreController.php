@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use App\Data\ProductStoreData;
+use App\Services\ProductService;
+use Illuminate\Http\Request;
+
+class ProductStoreController extends Controller
+{
+    public function __invoke(ProductStoreData $data, Request $request, ProductService $productService)
+    {
+        $productService->createProduct($data, $request->file('digital_file'));
+        return redirect()->route('admin.products.index')->with('success', 'Product created.');
+    }
+}
