@@ -1,38 +1,54 @@
-import { Row, Col, Typography } from 'antd';
+import { Truck, RotateCcw, ShieldCheck, Headphones } from 'lucide-react';
 import React from 'react';
 
-const { Title } = Typography;
-
 export default function BenefitsSection() {
+    const benefits = [
+        {
+            icon: <Truck className="h-6 w-6 text-[#d89797]" />,
+            title: 'Free Shipping',
+            desc: 'On orders over $75',
+        },
+        {
+            icon: <RotateCcw className="h-6 w-6 text-[#d89797]" />,
+            title: 'Easy Returns',
+            desc: '30 days return policy',
+        },
+        {
+            icon: <ShieldCheck className="h-6 w-6 text-[#d89797]" />,
+            title: 'Secure Payment',
+            desc: '100% secure checkout',
+        },
+        {
+            icon: <Headphones className="h-6 w-6 text-[#d89797]" />,
+            title: 'Customer Support',
+            desc: '24/7 friendly support',
+        },
+    ];
+
     return (
-        <div style={{ background: '#F5F8FF' }}>
-            <div className="!px-4 md:!px-12" style={{ maxWidth: 1200, margin: '0 auto' }}>
-                <div id="benefits" style={{ padding: '60px 0' }}>
-                    <Row gutter={[32, 32]}>
-                        <Col xs={24} md={8}>
-                    <div style={{ background: '#fff', padding: 40, borderRadius: 24, textAlign: 'center', border: '1px solid #e5e7eb' }}>
-                        <div style={{ background: '#FDF7F7', width: 60, height: 60, borderRadius: 16, margin: '0 auto 20px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: 24 }}>🌿</div>
-                        <Title level={4}>Organic Velvet Cotton</Title>
-                        <p style={{ color: '#6b7280' }}>Responsibly grown natural fibers that make every single embrace cozy, cloud-soft, and hypoallergenic.</p>
-                    </div>
-                </Col>
-                <Col xs={24} md={8}>
-                    <div style={{ background: '#fff', padding: 40, borderRadius: 24, textAlign: 'center', border: '1px solid #e5e7eb' }}>
-                        <div style={{ background: '#F2F7FC', width: 60, height: 60, borderRadius: 16, margin: '0 auto 20px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: 24 }}>☁️</div>
-                        <Title level={4}>Hypoallergenic Fill</Title>
-                        <p style={{ color: '#6b7280' }}>Perfect for kids, infants, and dust-allergy sensitive snugglers. Entirely lint-free material.</p>
-                    </div>
-                </Col>
-                <Col xs={24} md={8}>
-                    <div style={{ background: '#fff', padding: 40, borderRadius: 24, textAlign: 'center', border: '1px solid #e5e7eb' }}>
-                        <div style={{ background: '#FDFBF5', width: 60, height: 60, borderRadius: 16, margin: '0 auto 20px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: 24 }}>🎁</div>
-                        <Title level={4}>Delight Gifting Packs</Title>
-                        <p style={{ color: '#6b7280' }}>Every single doll includes a beautiful Adoption Registry card and secure recycled keepsake packaging.</p>
-                    </div>
-                </Col>
-            </Row>
+        <section
+            id="benefits"
+            className="w-full border-b border-[#eaeaea] bg-white py-12"
+        >
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4">
+                    {benefits.map((b, idx) => (
+                        <div key={idx} className="flex items-center space-x-4">
+                            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-[#fdf5f2]">
+                                {b.icon}
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-medium text-[#333333]">
+                                    {b.title}
+                                </h3>
+                                <p className="mt-1 text-xs text-[#666666]">
+                                    {b.desc}
+                                </p>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
-        </div>
+        </section>
     );
 }

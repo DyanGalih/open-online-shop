@@ -1,83 +1,216 @@
-import { Row, Col, Input, Button } from 'antd';
+import { usePage } from '@inertiajs/react';
+import { Leaf, Instagram, Facebook, Calendar, Music } from 'lucide-react';
 import React from 'react';
 
 export default function FooterSection() {
+    const { name } = usePage<{ name: string }>().props;
+
     return (
-        <footer style={{ background: '#FAF8F5', borderTop: '1px solid #E5E7EB', color: '#4B5563' }}>
-            <div className="!px-4 md:!px-12" style={{ maxWidth: 1200, margin: '0 auto', padding: '60px 0' }}>
-                <Row gutter={[40, 40]}>
-                    <Col xs={24} md={8}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: 20 }}>
-                        <div style={{ 
-                            width: 40, 
-                            height: 40, 
-                            background: 'linear-gradient(to top right, #F2C1C1, #D3C5EE)', 
-                            borderRadius: '50%', 
-                            display: 'flex', 
-                            alignItems: 'center', 
-                            justifyContent: 'center' 
-                        }}>
-                            <div style={{ display: 'flex', gap: 4 }}>
-                                <div style={{ width: 4, height: 4, background: '#fff', borderRadius: '50%' }}></div>
-                                <div style={{ width: 4, height: 4, background: '#fff', borderRadius: '50%' }}></div>
-                            </div>
+        <footer className="w-full border-t border-[#eaeaea] bg-white pt-16 pb-8 font-sans">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                {/* Main Links Grid */}
+                <div className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
+                    {/* Brand column */}
+                    <div className="pr-0 md:pr-8 lg:col-span-2">
+                        <div className="mb-4 flex cursor-pointer items-center">
+                            <span className="flex items-center font-serif text-3xl font-semibold tracking-tight text-[#333333]">
+                                {name}
+                                <Leaf className="ml-1 h-5 w-5 text-[#859b84] opacity-80" />
+                            </span>
                         </div>
-                        <h2 style={{ margin: 0, color: '#596582', fontWeight: 900, fontSize: '1.4rem' }}>Open Online Shop</h2>
+                        <p className="mb-6 max-w-xs text-sm leading-relaxed text-[#666666]">
+                            Simple, beautiful, and meaningful products for your
+                            everyday life.
+                        </p>
+                        <div className="flex space-x-4">
+                            <a
+                                href="#"
+                                className="text-[#666666] transition-colors hover:text-[#859b84]"
+                            >
+                                <Instagram className="h-5 w-5" />
+                            </a>
+                            <a
+                                href="#"
+                                className="text-[#666666] transition-colors hover:text-[#859b84]"
+                            >
+                                <Facebook className="h-5 w-5" />
+                            </a>
+                            <a
+                                href="#"
+                                className="text-[#666666] transition-colors hover:text-[#859b84]"
+                            >
+                                <Calendar className="h-5 w-5" />
+                            </a>
+                            <a
+                                href="#"
+                                className="text-[#666666] transition-colors hover:text-[#859b84]"
+                            >
+                                <Music className="h-5 w-5" />
+                            </a>
+                        </div>
                     </div>
-                        <p style={{ color: '#9CA3AF', margin: '16px 0 0 0', lineHeight: 1.6, maxWidth: 300, fontSize: '0.9rem' }}>
-                            Handcrafted, sustainable companions delivered right to your door in cozy, eco-friendly packaging.
-                        </p>
-                        <p style={{ fontSize: '0.85rem', color: '#6B7280', fontWeight: 600, marginTop: 24 }}>
-                            &copy; 2026 Open Online Shop. All Rights Cozy.
-                        </p>
-                    </Col>
 
-                <Col xs={24} sm={12} md={5}>
-                    <h3 style={{ color: '#3C3542', fontWeight: 900, marginBottom: 24, fontSize: '1.1rem' }}>Support & Adoption</h3>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        <li><a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'none' }}>Adoption Policy</a></li>
-                        <li><a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'none' }}>Shipping & Tracking</a></li>
-                        <li><a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'none' }}>Plushie Wash Guide</a></li>
-                        <li><a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'none' }}>Nursery Care Team</a></li>
-                    </ul>
-                </Col>
+                    {/* Shop Links */}
+                    <div>
+                        <h4 className="mb-4 text-xs font-medium tracking-wider text-[#333333] uppercase">
+                            Shop
+                        </h4>
+                        <ul className="space-y-3">
+                            <li>
+                                <a
+                                    href="#catalog"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    All Products
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#catalog"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    New Arrivals
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#catalog"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    Best Sellers
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#catalog"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    Sale
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-                <Col xs={24} sm={12} md={5}>
-                    <h3 style={{ color: '#3C3542', fontWeight: 900, marginBottom: 24, fontSize: '1.1rem' }}>Company & Story</h3>
-                    <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                        <li><a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'none' }}>TahuBeres Studio</a></li>
-                        <li><a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'none' }}>Eco-Velvet Farms</a></li>
-                        <li><a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'none' }}>Crafting Blog</a></li>
-                        <li><a href="#" style={{ color: '#4B5563', fontWeight: 600, textDecoration: 'none' }}>Jobs (Sewing Wizards)</a></li>
-                    </ul>
-                </Col>
+                    {/* Customer Service */}
+                    <div>
+                        <h4 className="mb-4 text-xs font-medium tracking-wider text-[#333333] uppercase">
+                            Customer Service
+                        </h4>
+                        <ul className="space-y-3">
+                            <li>
+                                <a
+                                    href="#"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    FAQs
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    Shipping & Delivery
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    Returns & Exchanges
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    Contact Us
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
 
-                <Col xs={24} md={6}>
-                    <h3 style={{ color: '#3C3542', fontWeight: 900, marginBottom: 20, fontSize: '1.1rem' }}>Nursery Newsletter</h3>
-                    <p style={{ lineHeight: 1.6, marginBottom: 24, fontSize: '0.9rem' }}>
-                        Join our cozy circle to receive notices of new patterns, limited edition drops, and exclusive discount codes.
+                    {/* About Column */}
+                    <div>
+                        <h4 className="mb-4 text-xs font-medium tracking-wider text-[#333333] uppercase">
+                            About
+                        </h4>
+                        <ul className="space-y-3">
+                            <li>
+                                <a
+                                    href="#"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    Our Story
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    Sustainability
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    Blog
+                                </a>
+                            </li>
+                            <li>
+                                <a
+                                    href="#"
+                                    className="text-sm text-[#666666] transition-colors hover:text-[#859b84]"
+                                >
+                                    Careers
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                {/* Subfooter */}
+                <div className="flex flex-col items-center justify-between border-t border-[#eaeaea] pt-8 md:flex-row">
+                    <p className="mb-4 text-xs text-[#666666] md:mb-0">
+                        &copy; 2026 {name}. All rights reserved.
                     </p>
-                    <div style={{ display: 'flex', gap: 12 }}>
-                        <Input 
-                            placeholder="Email coordinates..." 
-                            style={{ borderRadius: 8, padding: '12px 16px', border: '1px solid #E5E7EB', fontSize: '0.9rem' }} 
-                        />
-                        <Button 
-                            style={{ 
-                                background: '#EBBAB7', 
-                                color: '#8C4D4A', 
-                                border: 'none',
-                                borderRadius: 8, 
-                                padding: '0 24px', 
-                                height: 'auto',
-                                fontWeight: 700 
-                            }}
-                        >
-                            Join
-                        </Button>
+
+                    <div className="mb-4 flex items-center space-x-2 md:mb-0">
+                        <div className="flex h-6 w-10 items-center justify-center rounded border border-[#eaeaea] bg-white text-[9px] font-bold text-blue-800">
+                            VISA
+                        </div>
+                        <div className="flex h-6 w-10 items-center justify-center rounded border border-[#eaeaea] bg-white text-[9px] font-bold text-red-500">
+                            MC
+                        </div>
+                        <div className="flex h-6 w-10 items-center justify-center rounded border border-[#eaeaea] bg-white text-[9px] font-bold text-blue-500">
+                            PayPal
+                        </div>
+                        <div className="flex h-6 w-10 items-center justify-center rounded border border-[#eaeaea] bg-white text-[9px] font-bold">
+                            ApplePay
+                        </div>
                     </div>
-                </Col>
-                </Row>
+
+                    <div className="flex space-x-4 text-xs text-[#666666]">
+                        <a
+                            href="#"
+                            className="transition-colors hover:text-[#333333]"
+                        >
+                            Privacy Policy
+                        </a>
+                        <span className="text-gray-300">|</span>
+                        <a
+                            href="#"
+                            className="transition-colors hover:text-[#333333]"
+                        >
+                            Terms of Service
+                        </a>
+                    </div>
+                </div>
             </div>
         </footer>
     );

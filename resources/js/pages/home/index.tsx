@@ -1,136 +1,303 @@
-import { Head, router } from '@inertiajs/react';
-import { Layout, Typography } from 'antd';
-import { Search, Heart, ShoppingBasket } from 'lucide-react';
+import { Head, usePage } from '@inertiajs/react';
+import { ConfigProvider } from 'antd';
+import {
+    Search,
+    Heart,
+    ShoppingBag,
+    Leaf,
+    Menu as MenuIcon,
+} from 'lucide-react';
 import React, { useState } from 'react';
 import BenefitsSection from '@/components/home/benefits-section';
+import type { CartItem } from '@/components/home/cart-drawer';
 import CartDrawer from '@/components/home/cart-drawer';
+import CategoryList from '@/components/home/category-list';
 import CustomizerSection from '@/components/home/customizer-section';
 import FooterSection from '@/components/home/footer-section';
 import HeroSection from '@/components/home/hero-section';
 import PersonalizedWidget from '@/components/home/personalized-widget';
 import ProductGrid from '@/components/home/product-grid';
 import ReviewsSection from '@/components/home/reviews-section';
-import SearchForm from '@/components/home/search-form';
 import SearchModal from '@/components/home/search-modal';
+import { liviaTheme } from '@/themes/livia-theme';
 
 
-const { Header, Content } = Layout;
-const { Title } = Typography;
-
-export default function Index({ products, categories, personalized, auth }: any) {
+export default function Index({
+    products,
+    categories,
+    personalized,
+    auth,
+}: any) {
+    const { name } = usePage<{ name: string }>().props;
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    
+    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+        null,
+    );
+    const [cartItems, setCartItems] = useState<CartItem[]>([
+        // Initialize with one standard item to show default cart state
+        {
+            id: 'init-item-1',
+            productId: 1,
+            title: 'Minimal Ceramic Mug',
+            price: 18.0,
+            quantity: 1,
+            type: 'standard',
+        },
+    ]);
 
-    const handleSearch = (values: any) => {
-        router.get('/', values, { preserveState: true, replace: true });
+    const handleAddToCart = (product: any) => {
+        setCartItems((prev) => {
+            const existingIdx = prev.findIndex(
+                (item) =>
+                    item.productId === product.id && item.type === 'standard',
+            );
+
+            if (existingIdx > -1) {
+                const updated = [...prev];
+                updated[existingIdx].quantity += 1;
+
+                return updated;
+            }
+
+            return [
+                ...prev,
+                {
+                    id: `standard-${product.id}-${Date.now()}`,
+                    productId: product.id,
+                    title: product.title,
+                    price: product.price,
+                    quantity: 1,
+                    image_url: product.image_url,
+                    type: 'standard',
+                },
+            ];
+        });
+        setIsCartOpen(true); // Open drawer for immediate feedback
     };
 
+    const handleAddGiftBoxToCart = (giftBox: any) => {
+        setCartItems((prev) => [
+            ...prev,
+            {
+                id: `giftbox-${Date.now()}`,
+                title: `${giftBox.boxStyle} Set`,
+                price: giftBox.totalPrice,
+                quantity: 1,
+                type: 'gift-box',
+                boxStyle: giftBox.boxStyle,
+                items: giftBox.items,
+                cardMessage: giftBox.cardMessage,
+            },
+        ]);
+        setIsCartOpen(true); // Open drawer for immediate feedback
+    };
+
+    const handleUpdateQuantity = (id: string, delta: number) => {
+        setCartItems((prev) =>
+            prev
+                .map((item) => {
+                    if (item.id === id) {
+                        const newQty = item.quantity + delta;
+
+                        return newQty > 0
+                            ? { ...item, quantity: newQty }
+                            : null;
+                    }
+
+                    return item;
+                })
+                .filter((item): item is CartItem => item !== null),
+        );
+    };
+
+    const handleRemoveItem = (id: string) => {
+        setCartItems((prev) => prev.filter((item) => item.id !== id));
+    };
+
+    // Client-side category filtering
+    const filteredProducts = selectedCategoryId
+        ? products.filter((p: any) => p.category?.id === selectedCategoryId)
+        : products;
+
+    const totalCartCount = cartItems.reduce(
+        (sum, item) => sum + item.quantity,
+        0,
+    );
+
     return (
-        <Layout style={{ minHeight: '100vh', background: '#F5F3FA' }}>
-            <Head>
-                <title>Open Online Shop - Cozy Custom Doll Shop</title>
-                <meta name="description" content="Welcome to the best online shop for discovering great products." />
-            </Head>
-            
-            <Header style={{ padding: 0, background: 'rgba(255, 255, 255, 0.8)', backdropFilter: 'blur(10px)', position: 'sticky', top: 0, zIndex: 40, borderBottom: '1px solid #e5e7eb' }}>
-                <div className="!px-4 md:!px-12" style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '100%' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }} className="md:gap-3">
-                        <div className="w-8 h-8 md:w-11 md:h-11 flex-shrink-0 flex items-center justify-center rounded-full" style={{ background: 'linear-gradient(to top right, #F4C1C1, #C9C4E9)' }}>
-                            <svg className="w-4 h-4 md:w-[22px] md:h-[22px]" viewBox="0 0 24 24" fill="white">
-                                <circle cx="6" cy="7" r="4.5" />
-                                <circle cx="18" cy="7" r="4.5" />
-                                <circle cx="12" cy="14" r="8.5" />
-                                <circle cx="9" cy="13" r="1.5" fill="#D3A5A5" />
-                                <circle cx="15" cy="13" r="1.5" fill="#D3A5A5" />
-                                <circle cx="12" cy="16" r="1.5" fill="#D3A5A5" />
-                            </svg>
-                        </div>
-                        <Title level={4} className="whitespace-nowrap !text-lg md:!text-2xl" style={{ margin: 0, fontWeight: 900, letterSpacing: '-0.5px' }}>
-                            <span style={{ color: '#D48686' }}>Open </span>
-                            <span style={{ color: '#627B9B' }}>Online Shop</span>
-                        </Title>
-                    </div>
-                    <div className="hidden md:flex" style={{ gap: '20px' }}>
-                        <a href="#customizer" style={{ color: '#3C3542', fontWeight: 'bold' }}>Customizer</a>
-                        <a href="#catalog" style={{ color: '#3C3542', fontWeight: 'bold' }}>Adoption Center</a>
-                        <a href="#benefits" style={{ color: '#3C3542', fontWeight: 'bold' }}>Our Promise</a>
-                        <a href="#reviews" style={{ color: '#3C3542', fontWeight: 'bold' }}>Happy Parents</a>
-                    </div>
-                    <div className="flex items-center gap-3 md:gap-6">
-                        <Search onClick={() => setIsSearchModalOpen(true)} size={20} style={{ cursor: 'pointer', color: '#3C3542' }} />
-                        <Heart size={20} style={{ cursor: 'pointer', color: '#3C3542' }} />
-                        <button 
-                            onClick={() => setIsCartOpen(true)}
-                            style={{ 
-                            background: '#3C3542', 
-                            color: '#fff',  
-                            border: 'none', 
-                            padding: '6px 14px', 
-                            borderRadius: 20, 
-                            fontWeight: 'bold', 
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            fontSize: '0.85rem',
-                            lineHeight: 1,
-                            height: 'fit-content'
-                        }}>
-                            <ShoppingBasket size={15} />
-                            Bag
-                            <span style={{ 
-                                background: '#D3C5EE', 
-                                color: '#3C3542', 
-                                borderRadius: '50%', 
-                                width: 18, 
-                                height: 18, 
-                                display: 'flex', 
-                                alignItems: 'center', 
-                                justifyContent: 'center',
-                                fontSize: '0.7rem',
-                                fontWeight: 'bold'
-                            }}>1</span>
-                        </button>
-                    </div>
+        <ConfigProvider theme={liviaTheme}>
+            <div className="min-h-screen bg-[#fbf9f6] font-sans selection:bg-[#859b84] selection:text-white flex flex-col">
+                <Head>
+                    <title>{`${name} - Simple Things, Beautiful Life`}</title>
+                    <meta
+                        name="description"
+                        content="Thoughtfully designed products to make your everyday life better. Simple things, beautiful life."
+                    />
+                </Head>
+
+                {/* Announcement Bar */}
+                <div className="border-b border-[#f3e8e6] bg-[#fcf8f6] py-2.5 text-center font-sans text-xs text-[#666666]">
+                    <p className="flex items-center justify-center gap-1">
+                        Free shipping on orders over $75{' '}
+                        <Heart className="h-3.5 w-3.5 fill-current text-[#e6b3b3]" />
+                    </p>
                 </div>
-            </Header>
 
-            <Content style={{ width: '100%' }}>
-                
-                <HeroSection />
-                <CustomizerSection />
+                {/* Sticky Header */}
+                <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-[#eaeaea] bg-[#fbf9f6]/95 px-4 backdrop-blur-md transition-all sm:px-6 lg:px-8">
+                    <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between">
+                        {/* Logo */}
+                        <div className="flex flex-shrink-0 cursor-pointer items-center">
+                            <div className="flex flex-col items-center">
+                                <span className="flex items-center font-serif text-3xl font-semibold tracking-tight text-[#333333]">
+                                    {name}
+                                    <Leaf className="ml-1 h-5 w-5 text-[#859b84] opacity-80" />
+                                </span>
+                                <span className="mt-0.5 text-[9px] tracking-[0.2em] text-[#666666] uppercase">
+                                    — online shop —
+                                </span>
+                            </div>
+                        </div>
 
-                {/* Catalog Section */}
-                <div id="catalog" style={{ background: '#F0FDF4' }}>
-                    <div className="!px-4 md:!px-12" style={{ maxWidth: 1200, margin: '0 auto', padding: '60px 0' }}>
-                        <Title level={2} style={{ color: '#3C3542' }}>Adopt Pre-loved Friends</Title>
-                        <p style={{ color: '#4b5563', marginBottom: 30 }}>Our handmade preset companions. Fast secure shipping.</p>
-                        
-                        {auth?.user && personalized && (
-                            <PersonalizedWidget 
-                                recentlyViewed={personalized.recently_viewed || []}
-                                recommended={personalized.recommended || []}
-                                hasRecentOrder={personalized.has_recent_order || false}
+                        {/* Navigation links */}
+                        <nav className="hidden space-x-8 md:flex">
+                            <a
+                                href="#"
+                                className="border-b-2 border-[#e6b3b3] pb-1 text-sm font-medium text-[#333333]"
+                            >
+                                Home
+                            </a>
+                            <a
+                                href="#catalog"
+                                className="pb-1 text-sm font-medium text-[#666666] transition-colors hover:text-[#859b84]"
+                            >
+                                Shop
+                            </a>
+                            <a
+                                href="#customizer"
+                                className="pb-1 text-sm font-medium text-[#666666] transition-colors hover:text-[#859b84]"
+                            >
+                                Gift Builder
+                            </a>
+                            <a
+                                href="#reviews"
+                                className="pb-1 text-sm font-medium text-[#666666] transition-colors hover:text-[#859b84]"
+                            >
+                                Stories
+                            </a>
+                        </nav>
+
+                        {/* Utility Icons */}
+                        <div className="flex items-center space-x-6">
+                            <button
+                                onClick={() => setIsSearchModalOpen(true)}
+                                className="text-[#333333] transition-colors hover:text-[#859b84]"
+                            >
+                                <Search size={20} />
+                            </button>
+                            <button className="hidden text-[#333333] transition-colors hover:text-[#859b84] sm:block">
+                                <Heart size={20} />
+                            </button>
+                            <button
+                                onClick={() => setIsCartOpen(true)}
+                                className="relative flex items-center text-[#333333] transition-colors hover:text-[#859b84]"
+                            >
+                                <ShoppingBag size={20} />
+                                {totalCartCount > 0 && (
+                                    <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#e6b3b3] px-1 text-[9px] font-bold leading-none text-white">
+                                        {totalCartCount}
+                                    </span>
+                                )}
+                            </button>
+                            {/* Mobile menu toggle */}
+                            <button className="text-[#333333] md:hidden">
+                                <MenuIcon size={20} />
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Page Content */}
+                <main className="w-full flex-grow">
+                    <HeroSection />
+                    <BenefitsSection />
+
+                    {/* Category List Cards */}
+                    <CategoryList
+                        categories={categories}
+                        selectedCategoryId={selectedCategoryId}
+                        onSelectCategory={setSelectedCategoryId}
+                    />
+
+                    {/* Catalog Grid */}
+                    <div id="catalog" className="bg-white py-16">
+                        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                            <div className="mb-10 flex items-end justify-between border-b border-[#eaeaea] pb-4">
+                                <div>
+                                    <h2 className="font-serif text-3xl text-[#333333]">
+                                        Best Sellers
+                                    </h2>
+                                    <p className="mt-1.5 text-xs text-[#666666]">
+                                        Showing{' '}
+                                        {selectedCategoryId
+                                            ? categories.find(
+                                                  (c: any) =>
+                                                      c.id ===
+                                                      selectedCategoryId,
+                                              )?.name
+                                            : 'All'}{' '}
+                                        Collection
+                                    </p>
+                                </div>
+                                <a
+                                    href="#catalog"
+                                    className="text-xs font-semibold tracking-wider text-[#333333] uppercase transition-colors hover:text-[#859b84]"
+                                >
+                                    View All Items →
+                                </a>
+                            </div>
+
+                            {auth?.user && personalized && (
+                                <PersonalizedWidget
+                                    recentlyViewed={
+                                        personalized.recently_viewed || []
+                                    }
+                                    recommended={personalized.recommended || []}
+                                    hasRecentOrder={
+                                        personalized.has_recent_order || false
+                                    }
+                                    onAddToCart={handleAddToCart}
+                                />
+                            )}
+
+                            <ProductGrid
+                                products={filteredProducts}
+                                onAddToCart={handleAddToCart}
                             />
-                        )}
-
-                        <div style={{ marginBottom: 20 }}>
-                            <SearchForm categories={categories} onSearch={handleSearch} />
                         </div>
-
-                        <ProductGrid products={products} />
                     </div>
-                </div>
 
-                <BenefitsSection />
-                <ReviewsSection />
+                    <CustomizerSection
+                        onAddGiftBoxToCart={handleAddGiftBoxToCart}
+                    />
+                    <ReviewsSection />
+                </main>
 
-            </Content>
-
-            <SearchModal isOpen={isSearchModalOpen} onClose={() => setIsSearchModalOpen(false)} />
-            <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-            <FooterSection />
-        </Layout>
+                {/* Global Overlays */}
+                <SearchModal
+                    isOpen={isSearchModalOpen}
+                    onClose={() => setIsSearchModalOpen(false)}
+                />
+                <CartDrawer
+                    isOpen={isCartOpen}
+                    onClose={() => setIsCartOpen(false)}
+                    cartItems={cartItems}
+                    onUpdateQuantity={handleUpdateQuantity}
+                    onRemoveItem={handleRemoveItem}
+                />
+                <FooterSection />
+            </div>
+        </ConfigProvider>
     );
 }
