@@ -5,12 +5,14 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import type { NavItem } from '@/types';
 
 export function NavMain({ items = [] }: { items: NavItem[] }) {
     const { isCurrentUrl } = useCurrentUrl();
+    const { state } = useSidebar();
 
     return (
         <SidebarGroup className="px-2 py-0">
@@ -25,7 +27,9 @@ export function NavMain({ items = [] }: { items: NavItem[] }) {
                         >
                             <Link href={item.href} prefetch>
                                 {item.icon && <item.icon />}
-                                <span>{item.title}</span>
+                                {state === 'expanded' && (
+                                    <span>{item.title}</span>
+                                )}
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

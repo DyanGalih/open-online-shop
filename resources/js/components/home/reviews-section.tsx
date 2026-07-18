@@ -1,5 +1,4 @@
 import { Star } from 'lucide-react';
-import React from 'react';
 
 export default function ReviewsSection() {
     const reviews = [
@@ -24,12 +23,12 @@ export default function ReviewsSection() {
     ];
 
     return (
-        <section id="reviews" className="w-full bg-[#fbf9f6] py-20 font-sans">
+        <section id="reviews" className="w-full bg-background py-20 font-sans">
             <div className="mx-auto max-w-7xl px-4 text-center sm:px-6 lg:px-8">
-                <h2 className="mb-2 font-serif text-3xl text-[#333333] md:text-4xl">
+                <h2 className="mb-2 font-serif text-3xl text-foreground md:text-4xl">
                     Customer Stories
                 </h2>
-                <p className="mx-auto mb-12 max-w-lg text-[#666666]">
+                <p className="mx-auto mb-12 max-w-lg text-muted-foreground">
                     Read what our community has to say about bringing simple,
                     beautiful things into their daily lives.
                 </p>
@@ -38,17 +37,17 @@ export default function ReviewsSection() {
                     {reviews.map((r, idx) => (
                         <div
                             key={idx}
-                            className="flex flex-col justify-between border border-[#eaeaea] bg-white p-8 text-left"
+                            className="flex flex-col justify-between border border-border bg-white p-8 text-left"
                         >
                             <div>
-                                <div className="mb-4 flex space-x-0.5 text-[#e8c07d]">
+                                <div className="mb-4 flex space-x-0.5 text-accent">
                                     <Star className="h-3.5 w-3.5 fill-current" />
                                     <Star className="h-3.5 w-3.5 fill-current" />
                                     <Star className="h-3.5 w-3.5 fill-current" />
                                     <Star className="h-3.5 w-3.5 fill-current" />
                                     <Star className="h-3.5 w-3.5 fill-current" />
                                 </div>
-                                <p className="mb-6 text-sm leading-relaxed text-[#4b5563] italic md:text-base">
+                                <p className="mb-6 text-sm leading-relaxed text-foreground/80 italic md:text-base">
                                     {r.text}
                                 </p>
                             </div>
@@ -58,10 +57,10 @@ export default function ReviewsSection() {
                                     style={{ backgroundColor: r.avatarBg }}
                                 />
                                 <div>
-                                    <strong className="block text-sm text-[#333333]">
+                                    <strong className="block text-sm text-foreground">
                                         {r.name}
                                     </strong>
-                                    <span className="text-[11px] text-[#666666]">
+                                    <span className="text-[11px] text-muted-foreground">
                                         {r.product}
                                     </span>
                                 </div>

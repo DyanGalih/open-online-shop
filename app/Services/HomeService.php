@@ -3,119 +3,40 @@
 namespace App\Services;
 
 use App\Data\CategoryData;
+use App\Data\GiftBoxData;
 use App\Data\HomeSearchData;
 use App\Data\ProductData;
+use App\Models\Category;
+use App\Models\Product;
 use Illuminate\Support\Collection;
+use Illuminate\Validation\ValidationException;
+use Spatie\LaravelData\DataCollection;
 
 class HomeService
 {
     /**
-     * @var array<int, array{id: int, title: string, slug: string, price: float, image_url: null, category: array{id: int, name: string, slug: string}}>
-     */
-    private array $productsList = [];
-
-    /**
-     * Get mock categories dataset.
+     * Get the general product catalog from the database.
      *
-     * @return Collection<int, array{id: int, name: string, slug: string}>
+     * @return DataCollection<int, ProductData>
      */
-    private function getRawCategories(): Collection
+    public function getGeneralCatalog(): DataCollection
     {
-        return collect([
-            ['id' => 1, 'name' => 'Home & Living', 'slug' => 'home-living'],
-            ['id' => 2, 'name' => 'Beauty & Skincare', 'slug' => 'beauty-skincare'],
-            ['id' => 3, 'name' => 'Fashion', 'slug' => 'fashion'],
-            ['id' => 4, 'name' => 'Accessories', 'slug' => 'accessories'],
-            ['id' => 5, 'name' => 'Stationery', 'slug' => 'stationery'],
-        ]);
+        $products = Product::where('status', 'active')
+            ->with('category')
+            ->latest()
+            ->get();
+
+        return ProductData::collect($products, DataCollection::class);
     }
 
     /**
-     * Ensure that the products list is initialized.
-     */
-    private function ensureProductsInitialized(): void
-    {
-        if (! empty($this->productsList)) {
-            return;
-        }
-
-        $categories = $this->getRawCategories()->keyBy('id');
-
-        $cat1 = $categories->get(1);
-        $cat4 = $categories->get(4);
-
-        if ($cat1 === null || $cat4 === null) {
-            throw new \RuntimeException('Required mock categories not found');
-        }
-
-        $this->productsList = [
-            [
-                'id' => 1,
-                'title' => 'Minimal Ceramic Mug',
-                'slug' => 'minimal-ceramic-mug',
-                'price' => 18.00,
-                'image_url' => null,
-                'category' => $cat1,
-            ],
-            [
-                'id' => 2,
-                'title' => 'Scented Soy Candle',
-                'slug' => 'scented-soy-candle',
-                'price' => 22.00,
-                'image_url' => null,
-                'category' => $cat1,
-            ],
-            [
-                'id' => 3,
-                'title' => 'Canvas Everyday Tote',
-                'slug' => 'canvas-everyday-tote',
-                'price' => 34.00,
-                'image_url' => null,
-                'category' => $cat4,
-            ],
-            [
-                'id' => 4,
-                'title' => 'Classic Minimal Watch',
-                'slug' => 'classic-minimal-watch',
-                'price' => 49.00,
-                'image_url' => null,
-                'category' => $cat4,
-            ],
-        ];
-    }
-
-    /**
-     * @return Collection<int, array{id: int, title: string, slug: string, price: float, image_url: null, category: array{id: int, name: string, slug: string}}>
-     */
-    private function getRawProducts(): Collection
-    {
-        $this->ensureProductsInitialized();
-
-        return new Collection(array_values($this->productsList));
-    }
-
-    /**
-     * Get the general product catalog.
-     *
-     * @return Collection<int, ProductData>
-     */
-    public function getGeneralCatalog(): Collection
-    {
-        $products = $this->getRawProducts()->map(fn ($item) => (object) $item);
-
-        return ProductData::collect($products);
-    }
-
-    /**
-     * Get categories list.
+     * Get categories list from the database.
      *
      * @return Collection<int, CategoryData>
      */
     public function getCategories(): Collection
     {
-        $categories = $this->getRawCategories()->map(fn ($item) => (object) $item);
-
-        return CategoryData::collect($categories);
+        return CategoryData::collect(Category::orderBy('name')->get());
     }
 
     /**
@@ -129,11 +50,14 @@ class HomeService
             return [];
         }
 
-        $allProducts = $this->getRawProducts();
+        $allProducts = Product::where('status', 'active')->limit(4)->get();
 
-        // Mocked personalized content using first two items
-        $recentlyViewed = $allProducts->slice(0, 2)->map(fn ($item) => (object) $item);
-        $recommended = $allProducts->slice(2, 2)->map(fn ($item) => (object) $item);
+        if ($allProducts->isEmpty()) {
+            return [];
+        }
+
+        $recentlyViewed = $allProducts->slice(0, 2);
+        $recommended = $allProducts->slice(2, 2);
 
         return [
             'recently_viewed' => ProductData::collect($recentlyViewed),
@@ -142,26 +66,76 @@ class HomeService
         ];
     }
 
-    /**
-     * Search products based on DTO.
-     *
-     * @return Collection<int, ProductData>
-     */
-    public function searchProducts(HomeSearchData $dto): Collection
+    /** @return DataCollection<int|string, ProductData> */
+    public function searchProducts(HomeSearchData $dto): DataCollection
     {
-        $filtered = $this->getRawProducts();
+        $query = Product::where('status', 'active')->with('category');
 
         if ($dto->categoryId) {
-            $filtered = $filtered->filter(fn ($p) => $p['category']['id'] === (int) $dto->categoryId);
+            $query->where('category_id', $dto->categoryId);
         }
 
         if ($dto->search) {
-            $searchLower = strtolower($dto->search);
-            $filtered = $filtered->filter(fn ($p) => str_contains(strtolower($p['title']), $searchLower));
+            $query->where('name', 'like', "%{$dto->search}%");
         }
 
-        $mapped = $filtered->map(fn ($item) => (object) $item);
+        if ($dto->filter) {
+            if ($dto->filter === 'new-arrivals') {
+                $query->orderBy('created_at', 'desc');
+            } elseif ($dto->filter === 'best-sellers') {
+                $query->orderBy('rating', 'desc')->orderBy('reviews_count', 'desc');
+            } elseif ($dto->filter === 'sale') {
+                $query->orderBy('price', 'asc');
+            }
+        } else {
+            $query->latest();
+        }
 
-        return ProductData::collect($mapped);
+        return ProductData::collect($query->get(), DataCollection::class);
+    }
+
+    /**
+     * Calculate authoritative price for a gift box and simulate adding to cart.
+     *
+     * @return array<string, mixed>
+     */
+    public function calculateAndAddGiftBox(GiftBoxData $data): array
+    {
+        // 1. Authoritative Box Pricing
+        $boxPrices = [
+            'kraft-box' => 10.0,
+            'sage-ribbon-box' => 12.0,
+        ];
+
+        $boxPrice = $boxPrices[$data->boxStyle] ?? 10.0;
+
+        // 2. Authoritative Item Pricing - ensure uniqueness and existence
+        if (count(array_unique($data->selectedItems)) !== count($data->selectedItems)) {
+            throw ValidationException::withMessages([
+                'selected_items' => ['The selected items must be unique.'],
+            ]);
+        }
+
+        $selectedItems = Product::whereIn('id', $data->selectedItems)->get();
+
+        if ($selectedItems->count() !== count($data->selectedItems)) {
+            throw ValidationException::withMessages([
+                'selected_items' => ['One or more selected products are invalid or unavailable.'],
+            ]);
+        }
+
+        $itemsTotal = $selectedItems->sum('price');
+        $finalTotal = $boxPrice + $itemsTotal;
+
+        return [
+            'success' => true,
+            'gift_box' => [
+                'box_style' => $data->boxStyle,
+                'items' => ProductData::collect($selectedItems),
+                'card_message' => $data->cardMessage,
+                'price' => $finalTotal,
+            ],
+            'message' => 'Custom gift box added to cart successfully.',
+        ];
     }
 }

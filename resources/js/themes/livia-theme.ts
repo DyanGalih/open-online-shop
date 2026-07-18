@@ -26,7 +26,6 @@ export const liviaTheme: ThemeConfig = {
             textHoverBg: 'rgba(133, 155, 132, 0.1)',
         },
         Typography: {
-            fontFamilyTitle: '"Playfair Display", Georgia, serif',
             colorTextHeading: '#333333',
         },
         Input: {
