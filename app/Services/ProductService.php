@@ -2,19 +2,19 @@
 
 namespace App\Services;
 
-use App\Models\Product;
 use App\Data\ProductStoreData;
 use App\Data\ProductUpdateData;
-use Illuminate\Support\Str;
+use App\Models\Product;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 
 class ProductService
 {
     public function createProduct(ProductStoreData $data, ?UploadedFile $file): Product
     {
         $payload = $data->toArray();
-        $payload['slug'] = Str::slug($data->name) . '-' . Str::random(5);
-        
+        $payload['slug'] = Str::slug($data->name).'-'.Str::random(5);
+
         if ($file) {
             $payload['file_path'] = $file->store('digital_products', 'private');
         }
@@ -27,7 +27,7 @@ class ProductService
         $payload = $data->toArray();
 
         if ($data->name !== $product->name) {
-            $payload['slug'] = Str::slug($data->name) . '-' . Str::random(5);
+            $payload['slug'] = Str::slug($data->name).'-'.Str::random(5);
         }
 
         if ($file) {

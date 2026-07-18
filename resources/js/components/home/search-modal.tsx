@@ -1,6 +1,5 @@
-import { Modal, Input } from 'antd';
-import { Wand2, Search } from 'lucide-react';
-import React from 'react';
+import { Input, Modal } from 'antd';
+import { Search } from 'lucide-react';
 
 interface SearchModalProps {
     isOpen: boolean;
@@ -14,7 +13,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
             onCancel={onClose}
             footer={null}
             closeIcon={null}
-            styles={{ body: { padding: '24px', borderRadius: '24px' } }}
+            styles={{ body: { padding: '24px', borderRadius: '0px' } }}
             width={750}
             centered
         >
@@ -27,16 +26,17 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 }}
             >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <Wand2 color="#C86363" size={24} />
+                    <Search className="text-primary" size={24} />
                     <h2
                         style={{
                             margin: 0,
-                            color: '#3C3542',
+                            color: 'var(--foreground)',
                             fontSize: '1.4rem',
-                            fontWeight: 800,
+                            fontWeight: 600,
+                            fontFamily: 'serif',
                         }}
                     >
-                        Find your fuzzy friend
+                        Search Products
                     </h2>
                 </div>
                 <button
@@ -46,7 +46,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                         border: 'none',
                         fontSize: 24,
                         cursor: 'pointer',
-                        color: '#9CA3AF',
+                        color: 'var(--muted-foreground)',
                         fontWeight: 'bold',
                     }}
                 >
@@ -58,17 +58,17 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 prefix={
                     <Search
                         size={20}
-                        color="#9CA3AF"
+                        className="text-muted-foreground"
                         style={{ marginRight: 8 }}
                     />
                 }
-                placeholder="Search by character, color, or tags..."
+                placeholder="What are you looking for?"
                 style={{
-                    borderRadius: 24,
+                    borderRadius: 'var(--radius)',
                     padding: '14px 24px',
                     fontSize: '1.05rem',
                     marginBottom: 16,
-                    border: '1px solid #D1D5DB',
+                    border: '1px solid var(--border)',
                 }}
             />
 
@@ -76,47 +76,50 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
                 <span
                     style={{
                         fontSize: '0.9rem',
-                        color: '#4B5563',
+                        color: 'var(--muted-foreground)',
                         fontWeight: 600,
                     }}
                 >
-                    Trending tags:
+                    Suggested keywords:
                 </span>
                 <span
                     style={{
                         padding: '4px 14px',
-                        borderRadius: 20,
-                        border: '1px solid #FCA5A5',
-                        color: '#C86363',
-                        background: '#FEF2F2',
+                        borderRadius: 0,
+                        border: '1px solid var(--border)',
+                        color: 'var(--foreground)',
+                        background: 'var(--background)',
                         fontSize: '0.8rem',
+                        cursor: 'pointer',
                     }}
                 >
-                    #bunny
+                    Ceramic
                 </span>
                 <span
                     style={{
                         padding: '4px 14px',
-                        borderRadius: 20,
-                        border: '1px solid #93C5FD',
-                        color: '#3B82F6',
-                        background: '#EFF6FF',
+                        borderRadius: 0,
+                        border: '1px solid var(--border)',
+                        color: 'var(--foreground)',
+                        background: 'var(--background)',
                         fontSize: '0.8rem',
+                        cursor: 'pointer',
                     }}
                 >
-                    #stellar
+                    Scented
                 </span>
                 <span
                     style={{
                         padding: '4px 14px',
-                        borderRadius: 20,
-                        border: '1px solid #FCD34D',
-                        color: '#D97706',
-                        background: '#FFFBEB',
+                        borderRadius: 0,
+                        border: '1px solid var(--border)',
+                        color: 'var(--foreground)',
+                        background: 'var(--background)',
                         fontSize: '0.8rem',
+                        cursor: 'pointer',
                     }}
                 >
-                    #kitten
+                    Minimal
                 </span>
             </div>
         </Modal>

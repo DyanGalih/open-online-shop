@@ -3,9 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Services\AdminDashboardService;
+use Inertia\Inertia;
 
 class AdminDashboardController extends Controller
 {
@@ -14,7 +13,7 @@ class AdminDashboardController extends Controller
         $metrics = $adminDashboardService->getMetrics();
 
         return Inertia::render('admin/dashboard', [
-            'metrics' => $metrics
+            'metrics' => $metrics,
         ]);
     }
 }

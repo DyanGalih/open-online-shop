@@ -5,11 +5,18 @@
 
 This repository contains the application code for the Online Shop platform. 
 
+![Homepage Screenshot](screenshot/homepage.jpeg)
+
 The application is built with a **Mobile-First UX** approach to deliver a seamless, app-like web experience. It features full online payment integration and delivery management.
 
 ## System Overview
 
-The system is a monolithic full-stack web application built on **Laravel 13+** and **Inertia React** (React 19, Tailwind CSS v4).
+The system is a monolithic full-stack web application built on **Laravel 13+** and **Inertia React**.
+
+### Technology Stack
+- **Backend**: Laravel 13+, Spatie Laravel Data (DTOs), Laravel Fortify (Auth/Passkeys).
+- **Frontend**: React 19, Inertia.js, Tailwind CSS v4, Radix UI, Ant Design.
+- **Tools**: Vite, Vitest/Pest (Testing), TypeScript.
 
 ### Roles and Boundaries
 The application serves three distinct user roles:
@@ -17,12 +24,15 @@ The application serves three distinct user roles:
 2. **Registered User (Member)**: Authenticated customers who can log in, manage their profiles, make purchases via the online payment gateway, and track deliveries.
 3. **Unregistered User (Guest)**: Public visitors who can browse the product catalog and public pages, but are required to register/login to complete a checkout.
 
-### Core Features
-- Mobile-first, app-like UI.
-- Secure Authentication via Laravel Fortify (including Passkey support).
-- Online Payment processing integration.
-- Delivery and fulfillment tracking.
-- Team/Tenant isolation for scalable business management.
+## Development Progress
+
+| Feature | Status |
+| --- | --- |
+| Home Page | 🏗️ Partially Complete |
+| Authentication (Passkeys) | 🏗️ In Progress |
+| Product Catalog | 🏗️ In Progress |
+| Payment Integration | 📅 Planned |
+| Admin Dashboard | 📅 Planned |
 
 ## Local Development
 

@@ -2,24 +2,27 @@
 
 namespace App\Data;
 
-use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Attributes\MapInputName;
+use Spatie\LaravelData\Attributes\Validation\Email;
 use Spatie\LaravelData\Attributes\Validation\In;
 use Spatie\LaravelData\Attributes\Validation\RequiredWithout;
-use Spatie\LaravelData\Attributes\Validation\Email;
+use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Mappers\CamelCaseMapper;
 
+#[MapInputName(CamelCaseMapper::class)]
 class CheckoutData extends Data
 {
     public function __construct(
-        #[RequiredWithout('user_id')]
+        #[RequiredWithout('userId')]
         #[Email]
         public ?string $email,
 
-        #[RequiredWithout('user_id')]
+        #[RequiredWithout('userId')]
         public ?string $name,
 
-        public ?string $shipping_address,
+        public ?string $shippingAddress,
 
         #[In('midtrans', 'manual')]
-        public string $payment_method,
+        public string $paymentMethod,
     ) {}
 }

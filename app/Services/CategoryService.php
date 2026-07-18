@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use App\Models\Category;
 use App\Data\CategoryStoreData;
 use App\Data\CategoryUpdateData;
+use App\Models\Category;
 use Illuminate\Support\Str;
 
 class CategoryService
@@ -12,7 +12,7 @@ class CategoryService
     public function createCategory(CategoryStoreData $data): Category
     {
         $payload = $data->toArray();
-        $payload['slug'] = Str::slug($data->name) . '-' . Str::random(5);
+        $payload['slug'] = Str::slug($data->name).'-'.Str::random(5);
 
         return Category::create($payload);
     }
@@ -22,7 +22,7 @@ class CategoryService
         $payload = $data->toArray();
 
         if ($data->name !== $category->name) {
-            $payload['slug'] = Str::slug($data->name) . '-' . Str::random(5);
+            $payload['slug'] = Str::slug($data->name).'-'.Str::random(5);
         }
 
         $category->update($payload);

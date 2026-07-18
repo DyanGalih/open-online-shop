@@ -11,7 +11,7 @@ class AdminOrderApproveController extends Controller
     public function __invoke(string $id, OrderManagementService $orderManagement)
     {
         $order = Order::findOrFail($id);
-        
+
         if ($order->status !== 'awaiting_verification') {
             return back()->with('error', 'Order cannot be approved in current state.');
         }

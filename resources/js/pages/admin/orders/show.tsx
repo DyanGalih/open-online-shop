@@ -1,5 +1,5 @@
-import React from 'react';
 import { useForm, Link } from '@inertiajs/react';
+import React from 'react';
 
 export default function Show({ order, paymentProofUrl }) {
     const { post, processing } = useForm();
@@ -25,10 +25,10 @@ export default function Show({ order, paymentProofUrl }) {
             <p><strong>Date:</strong> {new Date(order.created_at).toLocaleDateString()}</p>
             <p><strong>Total:</strong> ${order.total_amount}</p>
             
-            {order.shipping_address && (
+            {order.shippingAddress && (
                 <div>
                     <h3>Shipping Address</h3>
-                    <p>{order.shipping_address}</p>
+                    <p>{order.shippingAddress}</p>
                 </div>
             )}
 
@@ -41,7 +41,7 @@ export default function Show({ order, paymentProofUrl }) {
                 ))}
             </ul>
 
-            {order.payment_method === 'manual' && order.status === 'awaiting_verification' && (
+            {order.paymentMethod === 'manual' && order.status === 'awaiting_verification' && (
                 <div style={{ marginTop: '20px', padding: '10px', border: '1px solid #ccc' }}>
                     <h3>Manual Payment Verification</h3>
                     {paymentProofUrl ? (

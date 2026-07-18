@@ -2,14 +2,13 @@
 
 namespace App\Mail;
 
+use App\Models\Order;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Mail\Mailables\Attachment;
-use App\Models\Order;
 
 class OrderInvoice extends Mailable
 {
@@ -46,12 +45,12 @@ class OrderInvoice extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {
         return [
-            Attachment::fromData(fn () => $this->pdfContent, 'Invoice-' . $this->order->id . '.pdf')
+            Attachment::fromData(fn () => $this->pdfContent, 'Invoice-'.$this->order->id.'.pdf')
                 ->withMime('application/pdf'),
         ];
     }

@@ -1,5 +1,5 @@
-import React from 'react';
 import { useForm } from '@inertiajs/react';
+import React from 'react';
 
 export default function Index({ products, categories, currentCategory }) {
     const { post, processing } = useForm({});

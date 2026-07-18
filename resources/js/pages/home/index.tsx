@@ -1,18 +1,7 @@
-import { Head, usePage } from '@inertiajs/react';
-import { ConfigProvider } from 'antd';
-import {
-    Search,
-    Heart,
-    ShoppingBag,
-    Leaf,
-    Menu as MenuIcon,
-} from 'lucide-react';
-import React, { useState } from 'react';
 import BenefitsSection from '@/components/home/benefits-section';
 import type { CartItem } from '@/components/home/cart-drawer';
 import CartDrawer from '@/components/home/cart-drawer';
 import CategoryList from '@/components/home/category-list';
-import CustomizerSection from '@/components/home/customizer-section';
 import FooterSection from '@/components/home/footer-section';
 import HeroSection from '@/components/home/hero-section';
 import PersonalizedWidget from '@/components/home/personalized-widget';
@@ -20,33 +9,45 @@ import ProductGrid from '@/components/home/product-grid';
 import ReviewsSection from '@/components/home/reviews-section';
 import SearchModal from '@/components/home/search-modal';
 import { liviaTheme } from '@/themes/livia-theme';
+import { HomePageProps, Product } from '@/types/home-page';
+import { Head, usePage } from '@inertiajs/react';
+import { ConfigProvider } from 'antd';
+import {
+    Heart,
+    Leaf,
+    Menu as MenuIcon,
+    Search,
+    ShoppingBag,
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
 
 
 export default function Index({
     products,
     categories,
     personalized,
+    filters,
     auth,
-}: any) {
+}: HomePageProps) {
     const { name } = usePage<{ name: string }>().props;
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
-        null,
+        filters?.categoryId ?? null,
     );
-    const [cartItems, setCartItems] = useState<CartItem[]>([
-        // Initialize with one standard item to show default cart state
-        {
-            id: 'init-item-1',
-            productId: 1,
-            title: 'Minimal Ceramic Mug',
-            price: 18.0,
-            quantity: 1,
-            type: 'standard',
-        },
-    ]);
+    const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem('online_shop_cart');
+            return saved ? JSON.parse(saved) : [];
+        }
+        return [];
+    });
 
-    const handleAddToCart = (product: any) => {
+    useEffect(() => {
+        localStorage.setItem('online_shop_cart', JSON.stringify(cartItems));
+    }, [cartItems]);
+
+    const handleAddToCart = (product: Product) => {
         setCartItems((prev) => {
             const existingIdx = prev.findIndex(
                 (item) =>
@@ -65,31 +66,14 @@ export default function Index({
                 {
                     id: `standard-${product.id}-${Date.now()}`,
                     productId: product.id,
-                    title: product.title,
+                    name: product.name,
                     price: product.price,
                     quantity: 1,
-                    image_url: product.image_url,
+                    filePath: product.filePath,
                     type: 'standard',
                 },
             ];
         });
-        setIsCartOpen(true); // Open drawer for immediate feedback
-    };
-
-    const handleAddGiftBoxToCart = (giftBox: any) => {
-        setCartItems((prev) => [
-            ...prev,
-            {
-                id: `giftbox-${Date.now()}`,
-                title: `${giftBox.boxStyle} Set`,
-                price: giftBox.totalPrice,
-                quantity: 1,
-                type: 'gift-box',
-                boxStyle: giftBox.boxStyle,
-                items: giftBox.items,
-                cardMessage: giftBox.cardMessage,
-            },
-        ]);
         setIsCartOpen(true); // Open drawer for immediate feedback
     };
 
@@ -117,7 +101,7 @@ export default function Index({
 
     // Client-side category filtering
     const filteredProducts = selectedCategoryId
-        ? products.filter((p: any) => p.category?.id === selectedCategoryId)
+        ? products.filter((p) => p.categoryId === selectedCategoryId)
         : products;
 
     const totalCartCount = cartItems.reduce(
@@ -127,7 +111,7 @@ export default function Index({
 
     return (
         <ConfigProvider theme={liviaTheme}>
-            <div className="min-h-screen bg-[#fbf9f6] font-sans selection:bg-[#859b84] selection:text-white flex flex-col">
+            <div className="min-h-screen bg-background font-sans selection:bg-primary selection:text-white flex flex-col">
                 <Head>
                     <title>{`${name} - Simple Things, Beautiful Life`}</title>
                     <meta
@@ -137,24 +121,24 @@ export default function Index({
                 </Head>
 
                 {/* Announcement Bar */}
-                <div className="border-b border-[#f3e8e6] bg-[#fcf8f6] py-2.5 text-center font-sans text-xs text-[#666666]">
+                <div className="border-b border-[#f3e8e6] bg-[#fcf8f6] py-2.5 text-center font-sans text-xs text-muted-foreground">
                     <p className="flex items-center justify-center gap-1">
                         Free shipping on orders over $75{' '}
-                        <Heart className="h-3.5 w-3.5 fill-current text-[#e6b3b3]" />
+                        <Heart className="h-3.5 w-3.5 fill-current text-accent" />
                     </p>
                 </div>
 
                 {/* Sticky Header */}
-                <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-[#eaeaea] bg-[#fbf9f6]/95 px-4 backdrop-blur-md transition-all sm:px-6 lg:px-8">
+                <header className="sticky top-0 z-50 flex h-20 items-center justify-between border-b border-border bg-background/95 px-4 backdrop-blur-md transition-all sm:px-6 lg:px-8">
                     <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between">
                         {/* Logo */}
                         <div className="flex flex-shrink-0 cursor-pointer items-center">
                             <div className="flex flex-col items-center">
-                                <span className="flex items-center font-serif text-3xl font-semibold tracking-tight text-[#333333]">
+                                <span className="flex items-center font-serif text-3xl font-semibold tracking-tight text-foreground">
                                     {name}
-                                    <Leaf className="ml-1 h-5 w-5 text-[#859b84] opacity-80" />
+                                    <Leaf className="ml-1 h-5 w-5 text-primary opacity-80" />
                                 </span>
-                                <span className="mt-0.5 text-[9px] tracking-[0.2em] text-[#666666] uppercase">
+                                <span className="mt-0.5 text-[9px] tracking-[0.2em] text-muted-foreground uppercase">
                                     — online shop —
                                 </span>
                             </div>
@@ -164,25 +148,25 @@ export default function Index({
                         <nav className="hidden space-x-8 md:flex">
                             <a
                                 href="#"
-                                className="border-b-2 border-[#e6b3b3] pb-1 text-sm font-medium text-[#333333]"
+                                className="border-b-2 border-accent pb-1 text-sm font-medium text-primary"
                             >
                                 Home
                             </a>
                             <a
                                 href="#catalog"
-                                className="pb-1 text-sm font-medium text-[#666666] transition-colors hover:text-[#859b84]"
+                                className="pb-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                             >
                                 Shop
                             </a>
                             <a
                                 href="#customizer"
-                                className="pb-1 text-sm font-medium text-[#666666] transition-colors hover:text-[#859b84]"
+                                className="pb-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                             >
                                 Gift Builder
                             </a>
                             <a
                                 href="#reviews"
-                                className="pb-1 text-sm font-medium text-[#666666] transition-colors hover:text-[#859b84]"
+                                className="pb-1 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
                             >
                                 Stories
                             </a>
@@ -192,26 +176,26 @@ export default function Index({
                         <div className="flex items-center space-x-6">
                             <button
                                 onClick={() => setIsSearchModalOpen(true)}
-                                className="text-[#333333] transition-colors hover:text-[#859b84]"
+                                className="text-foreground transition-colors hover:text-primary"
                             >
                                 <Search size={20} />
                             </button>
-                            <button className="hidden text-[#333333] transition-colors hover:text-[#859b84] sm:block">
+                            <button className="hidden text-foreground transition-colors hover:text-primary sm:block">
                                 <Heart size={20} />
                             </button>
                             <button
                                 onClick={() => setIsCartOpen(true)}
-                                className="relative flex items-center text-[#333333] transition-colors hover:text-[#859b84]"
+                                className="relative flex items-center text-foreground transition-colors hover:text-primary"
                             >
                                 <ShoppingBag size={20} />
                                 {totalCartCount > 0 && (
-                                    <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#e6b3b3] px-1 text-[9px] font-bold leading-none text-white">
+                                    <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold leading-none text-white">
                                         {totalCartCount}
                                     </span>
                                 )}
                             </button>
                             {/* Mobile menu toggle */}
-                            <button className="text-[#333333] md:hidden">
+                            <button className="text-foreground md:hidden">
                                 <MenuIcon size={20} />
                             </button>
                         </div>
@@ -233,26 +217,26 @@ export default function Index({
                     {/* Catalog Grid */}
                     <div id="catalog" className="bg-white py-16">
                         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                            <div className="mb-10 flex items-end justify-between border-b border-[#eaeaea] pb-4">
+                            <div className="mb-10 flex items-end justify-between border-b border-border pb-4">
                                 <div>
-                                    <h2 className="font-serif text-3xl text-[#333333]">
+                                    <h2 className="font-serif text-3xl text-foreground">
                                         Best Sellers
                                     </h2>
-                                    <p className="mt-1.5 text-xs text-[#666666]">
+                                    <p className="mt-1.5 text-xs text-muted-foreground">
                                         Showing{' '}
                                         {selectedCategoryId
                                             ? categories.find(
-                                                  (c: any) =>
-                                                      c.id ===
-                                                      selectedCategoryId,
-                                              )?.name
+                                                (c) =>
+                                                    c.id ===
+                                                    selectedCategoryId,
+                                            )?.name
                                             : 'All'}{' '}
                                         Collection
                                     </p>
                                 </div>
                                 <a
                                     href="#catalog"
-                                    className="text-xs font-semibold tracking-wider text-[#333333] uppercase transition-colors hover:text-[#859b84]"
+                                    className="text-xs font-semibold tracking-wider text-foreground uppercase transition-colors hover:text-primary"
                                 >
                                     View All Items →
                                 </a>
@@ -278,9 +262,6 @@ export default function Index({
                         </div>
                     </div>
 
-                    <CustomizerSection
-                        onAddGiftBoxToCart={handleAddGiftBoxToCart}
-                    />
                     <ReviewsSection />
                 </main>
 

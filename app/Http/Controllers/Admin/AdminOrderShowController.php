@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Inertia\Inertia;
 use App\Models\Order;
 use Illuminate\Support\Facades\Storage;
+use Inertia\Inertia;
 
 class AdminOrderShowController extends Controller
 {
     public function __invoke(string $id)
     {
         $order = Order::with(['user', 'items'])->findOrFail($id);
-        
-        $paymentProofUrl = $order->payment_evidence_path 
+
+        $paymentProofUrl = $order->payment_evidence_path
             ? Storage::disk('private')->url($order->payment_evidence_path)
             : null;
 

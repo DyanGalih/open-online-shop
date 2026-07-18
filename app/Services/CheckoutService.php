@@ -2,15 +2,15 @@
 
 namespace App\Services;
 
-use App\Models\Product;
+use App\Data\CartItemDetailsData;
+use App\Data\CheckoutData;
+use App\Data\CheckoutDetailsData;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Data\CheckoutData;
-use Illuminate\Support\Facades\DB;
+use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
-
-use App\Data\CheckoutDetailsData;
-use App\Data\CartItemDetailsData;
+use Illuminate\Support\Facades\DB;
+use Spatie\LaravelData\DataCollection;
 
 class CheckoutService
 {
@@ -21,15 +21,15 @@ class CheckoutService
     public function getCheckoutDetails(array $cart): CheckoutDetailsData
     {
         $products = Product::whereIn('id', array_keys($cart))->get();
-        
+
         $total = 0;
         $requiresShipping = false;
         $items = [];
-        
+
         foreach ($products as $product) {
             $qty = $cart[$product->id] ?? 0;
             $total += $product->price * $qty;
-            if (!$product->is_digital) {
+            if (! $product->is_digital) {
                 $requiresShipping = true;
             }
             $items[] = new CartItemDetailsData(
@@ -41,7 +41,7 @@ class CheckoutService
         }
 
         return new CheckoutDetailsData(
-            cartItems: CartItemDetailsData::collect($items),
+            cartItems: new DataCollection(CartItemDetailsData::class, $items),
             total: $total,
             requiresShipping: $requiresShipping
         );
@@ -50,8 +50,8 @@ class CheckoutService
     public function processCheckout(CheckoutData $data, array $cart): Order
     {
         $user = Auth::user();
-        
-        if (!$user) {
+
+        if (! $user) {
             $user = $this->guestRegistration->registerGuest($data->email, $data->name);
             Auth::login($user);
         }
@@ -66,8 +66,8 @@ class CheckoutService
             $order = Order::create([
                 'user_id' => $user->id,
                 'status' => 'pending',
-                'payment_method' => $data->payment_method,
-                'shipping_address' => $data->shipping_address,
+                'payment_method' => $data->paymentMethod,
+                'shipping_address' => $data->shippingAddress,
                 'total_amount' => $total,
             ]);
 
@@ -80,7 +80,7 @@ class CheckoutService
                     'quantity' => $cart[$product->id],
                 ]);
             }
-            
+
             return $order;
         });
     }

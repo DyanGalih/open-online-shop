@@ -10,11 +10,11 @@ class CartService
     public function addProduct(Request $request, CartAddData $data): void
     {
         $cart = $request->session()->get('cart', []);
-        
-        if (isset($cart[$data->product_id])) {
-            $cart[$data->product_id] += $data->quantity;
+
+        if (isset($cart[$data->productId])) {
+            $cart[$data->productId] += $data->quantity;
         } else {
-            $cart[$data->product_id] = $data->quantity;
+            $cart[$data->productId] = $data->quantity;
         }
 
         $request->session()->put('cart', $cart);
@@ -23,7 +23,7 @@ class CartService
     public function removeProduct(Request $request, string $productId): void
     {
         $cart = $request->session()->get('cart', []);
-        
+
         if (isset($cart[$productId])) {
             unset($cart[$productId]);
         }

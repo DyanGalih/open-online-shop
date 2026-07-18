@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Order;
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Collection;
 
 class OrderService
@@ -14,7 +15,9 @@ class OrderService
 
     public function getUserOrder($user, string $id): Order
     {
-        return $user->orders()->with('items.product')->findOrFail($id);
+        return $user->orders()->with(['items.product.reviews' => function ($query) use ($user) {
+            $query->where('user_id', $user->id);
+        }])->findOrFail($id);
     }
 
     public function getDigitalProductFile($user, string $orderId, string $productId): array
@@ -27,19 +30,19 @@ class OrderService
 
         $item = $order->items->where('product_id', $productId)->first();
 
-        if (!$item) {
+        if (! $item) {
             abort(404, 'Product not found in this order.');
         }
 
-        $product = \App\Models\Product::findOrFail($productId);
+        $product = Product::findOrFail($productId);
 
-        if (!$product->is_digital || !$product->file_path) {
+        if (! $product->is_digital || ! $product->file_path) {
             abort(404, 'Digital product file not found.');
         }
 
         return [
             'path' => $product->file_path,
-            'name' => $product->name . '.' . pathinfo($product->file_path, PATHINFO_EXTENSION)
+            'name' => $product->name.'.'.pathinfo($product->file_path, PATHINFO_EXTENSION),
         ];
     }
 }

@@ -1,18 +1,21 @@
-import { Drawer, Input, Button, Grid } from 'antd';
-import { ShoppingBag, Trash2, Minus, Plus, Gift } from 'lucide-react';
-import React from 'react';
+import productPlaceholder from '@/../../resources/images/home/product-placeholder.svg';
+import { formatCurrency } from '@/lib/currency';
+import { router } from '@inertiajs/react';
+import { Button, Drawer, Grid, Input } from 'antd';
+import { Gift, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 
 export interface CartItem {
     id: string; // unique cart item key
-    productId?: number; // for standard items
-    title: string;
+    productId?: string; // for standard items
+    name: string;
     price: number;
     quantity: number;
     image_url?: string | null;
     type: 'standard' | 'gift-box';
     // For Gift Boxes:
     boxStyle?: string;
-    items?: Array<{ id: number; title: string; price: number }>;
+    items?: Array<{ id: number; name: string; price: number }>;
     cardMessage?: string;
 }
 
@@ -35,6 +38,39 @@ export default function CartDrawer({
 }: CartDrawerProps) {
     const screens = useBreakpoint();
     const isMobile = screens.md === false;
+    const [checkingOut, setCheckingOut] = useState(false);
+
+    const handleCheckout = async () => {
+        const standardItems = cartItems
+            .filter((item) => item.type === 'standard' && item.productId)
+            .map((item) => ({ productId: item.productId!, quantity: item.quantity }));
+
+        if (standardItems.length === 0) return;
+
+        setCheckingOut(true);
+        try {
+            const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+            const response = await fetch('/cart/sync', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({ items: standardItems }),
+            });
+
+            if (response.ok) {
+                router.visit('/checkout');
+            } else {
+                console.error('Cart sync failed:', await response.text());
+                setCheckingOut(false);
+            }
+        } catch (e) {
+            console.error('Cart sync error:', e);
+            setCheckingOut(false);
+        }
+    };
 
     // Calculate totals
     const subtotal = cartItems.reduce(
@@ -44,18 +80,8 @@ export default function CartDrawer({
     const shipping = subtotal > 75 || subtotal === 0 ? 0 : 5.0;
     const finalTotal = subtotal + shipping;
 
-    const getProductImage = (title: string) => {
-        if (title.toLowerCase().includes('mug')) {
-            return 'https://placehold.co/600x800/eae3df/a3928f?text=Ceramic+Mug';
-        } else if (title.toLowerCase().includes('candle')) {
-            return 'https://placehold.co/600x800/e6e1d9/a3928f?text=Soy+Candle';
-        } else if (title.toLowerCase().includes('tote')) {
-            return 'https://placehold.co/600x800/e8ece6/a3928f?text=Tote+Bag';
-        } else if (title.toLowerCase().includes('watch')) {
-            return 'https://placehold.co/600x800/f3e8e6/a3928f?text=Watch';
-        }
-
-        return 'https://placehold.co/100x100/eaeaea/a3928f?text=Item';
+    const getProductImage = () => {
+        return productPlaceholder;
     };
 
     return (
@@ -66,11 +92,11 @@ export default function CartDrawer({
                         <div className="mx-auto mb-4 h-1 w-10 rounded bg-gray-300" />
                     )}
                     <div className="flex items-center gap-2.5">
-                        <ShoppingBag className="h-5 w-5 text-[#859b84]" />
-                        <span className="font-serif text-lg text-[#333333]">
+                        <ShoppingBag className="h-5 w-5 text-primary" />
+                        <span className="font-serif text-lg text-foreground">
                             Shopping Bag
                         </span>
-                        <span className="ml-1 rounded-full bg-[#e6b3b3] px-2 py-0.5 text-xs font-bold text-white">
+                        <span className="ml-1 rounded-full bg-accent px-2 py-0.5 text-xs font-bold text-white">
                             {cartItems.reduce(
                                 (sum, item) => sum + item.quantity,
                                 0,
@@ -101,15 +127,15 @@ export default function CartDrawer({
                 footer: { padding: 0, borderTop: 'none' },
             }}
             footer={
-                <div className="border-t border-[#eaeaea] bg-[#fbf9f6] p-6 font-sans">
+                <div className="border-t border-border bg-background p-6 font-sans">
                     <div className="mb-6 flex gap-2.5">
                         <Input
                             placeholder="PROMO CODE"
-                            className="rounded-none! border-[#eaeaea]! text-xs font-semibold"
+                            className="rounded-none! border-border! text-xs font-semibold"
                         />
                         <Button
                             style={{
-                                background: '#333333',
+                                background: 'var(--foreground)',
                                 color: '#fff',
                                 borderRadius: 0,
                                 height: 42,
@@ -123,53 +149,56 @@ export default function CartDrawer({
                         </Button>
                     </div>
 
-                    <div className="mb-6 flex flex-col gap-3 text-sm text-[#666666]">
+                    <div className="mb-6 flex flex-col gap-3 text-sm text-muted-foreground">
                         <div className="flex justify-between">
                             <span>Subtotal:</span>
-                            <span className="font-medium text-[#333333]">
-                                ${subtotal.toFixed(2)}
+                            <span className="font-medium text-foreground">
+                                {formatCurrency(subtotal)}
                             </span>
                         </div>
                         <div className="flex justify-between">
                             <span>Shipping:</span>
                             {shipping === 0 ? (
-                                <span className="text-xs font-medium tracking-wider text-[#859b84] uppercase">
+                                <span className="text-xs font-medium tracking-wider text-primary uppercase">
                                     FREE
                                 </span>
                             ) : (
-                                <span className="font-medium text-[#333333]">
-                                    ${shipping.toFixed(2)}
+                                <span className="font-medium text-foreground">
+                                    {formatCurrency(shipping)}
                                 </span>
                             )}
                         </div>
                     </div>
 
-                    <div className="my-4 border-t border-[#eaeaea]" />
+                    <div className="my-4 border-t border-border" />
 
                     <div className="mb-6 flex items-center justify-between">
-                        <span className="font-serif text-base text-[#333333]">
+                        <span className="font-serif text-base text-foreground">
                             Total Price:
                         </span>
-                        <span className="font-serif text-xl font-bold text-[#333333]">
-                            ${finalTotal.toFixed(2)}
+                        <span className="font-serif text-xl font-bold text-foreground">
+                            {formatCurrency(finalTotal)}
                         </span>
                     </div>
 
                     <Button
                         block
+                        onClick={handleCheckout}
+                        disabled={checkingOut || cartItems.length === 0}
                         style={{
-                            background: '#859b84',
+                            background: 'var(--primary)',
                             color: '#fff',
                             height: 50,
-                            borderRadius: 0,
+                            borderRadius: 'var(--radius)',
                             fontWeight: 600,
                             fontSize: '0.85rem',
                             border: 'none',
                             letterSpacing: '0.05em',
+                            opacity: (checkingOut || cartItems.length === 0) ? 0.7 : 1,
                         }}
                         className="tracking-wider uppercase"
                     >
-                        Proceed to Checkout
+                        {checkingOut ? 'Redirecting...' : 'Proceed to Checkout'}
                     </Button>
                 </div>
             }
@@ -179,18 +208,18 @@ export default function CartDrawer({
                 {cartItems.map((item) => (
                     <div
                         key={item.id}
-                        className="flex items-start gap-4 border border-[#eaeaea] bg-white p-4 transition-shadow hover:shadow-sm"
+                        className="flex items-start gap-4 border border-border bg-white p-4 transition-shadow hover:shadow-sm"
                     >
                         {/* Image Container */}
-                        <div className="flex h-20 w-16 flex-shrink-0 items-center justify-center overflow-hidden border border-[#eaeaea] bg-[#f9f9f9]">
+                        <div className="flex h-20 w-16 flex-shrink-0 items-center justify-center overflow-hidden border border-border bg-muted/30">
                             {item.type === 'gift-box' ? (
-                                <div className="flex h-full w-full items-center justify-center bg-[#fdf5f2] text-[#d89797]">
+                                <div className="flex h-full w-full items-center justify-center bg-accent/10 text-accent">
                                     <Gift className="h-8 w-8" />
                                 </div>
                             ) : (
                                 <img
-                                    src={getProductImage(item.title)}
-                                    alt={item.title}
+                                    src={getProductImage()}
+                                    alt={item.name}
                                     className="h-full w-full object-cover object-center"
                                 />
                             )}
@@ -200,37 +229,37 @@ export default function CartDrawer({
                         <div className="flex-grow">
                             <div className="flex items-start justify-between gap-2">
                                 <div>
-                                    <h4 className="margin-0 font-serif text-sm leading-tight text-[#333333] md:text-base">
-                                        {item.title}
+                                    <h4 className="margin-0 font-serif text-sm leading-tight text-foreground md:text-base">
+                                        {item.name}
                                     </h4>
 
                                     {item.type === 'gift-box' ? (
                                         <div className="mt-1.5 space-y-1">
-                                            <span className="block text-[10px] font-semibold tracking-wider text-[#859b84] uppercase">
+                                            <span className="block text-[10px] font-semibold tracking-wider text-primary uppercase">
                                                 Custom Gift Box
                                             </span>
-                                            <p className="text-[11px] leading-snug text-[#666666]">
+                                            <p className="text-[11px] leading-snug text-muted-foreground">
                                                 <strong>Items:</strong>{' '}
                                                 {item.items
-                                                    ?.map((i) => i.title)
+                                                    ?.map((i) => i.name)
                                                     .join(', ')}
                                             </p>
                                             {item.cardMessage?.trim() && (
-                                                <p className="text-[11px] leading-snug text-[#666666] italic">
+                                                <p className="text-[11px] leading-snug text-muted-foreground italic">
                                                     <strong>Card:</strong> "
                                                     {item.cardMessage}"
                                                 </p>
                                             )}
                                         </div>
                                     ) : (
-                                        <span className="mt-1 block text-[11px] tracking-wider text-[#999999] uppercase">
+                                        <span className="mt-1 block text-[11px] tracking-wider text-muted-foreground uppercase">
                                             Standard Item
                                         </span>
                                     )}
                                 </div>
                                 <button
                                     onClick={() => onRemoveItem(item.id)}
-                                    className="p-1 text-gray-400 transition-colors hover:text-red-500"
+                                    className="p-1 text-muted-foreground transition-colors hover:text-destructive"
                                 >
                                     <Trash2 size={16} />
                                 </button>
@@ -238,27 +267,27 @@ export default function CartDrawer({
 
                             {/* Quantity and Price row */}
                             <div className="mt-4 flex items-center justify-between">
-                                <span className="text-sm font-semibold text-[#333333]">
-                                    ${(item.price * item.quantity).toFixed(2)}
+                                <span className="text-sm font-semibold text-foreground">
+                                    {formatCurrency(item.price * item.quantity)}
                                 </span>
 
-                                <div className="flex items-center gap-3.5 rounded-none border border-[#eaeaea] bg-[#fbf9f6]/30 px-2.5 py-1">
+                                <div className="flex items-center gap-3.5 rounded-none border border-border bg-background/30 px-2.5 py-1">
                                     <button
                                         onClick={() =>
                                             onUpdateQuantity(item.id, -1)
                                         }
-                                        className="background-none flex cursor-pointer items-center border-none text-gray-400 transition-colors hover:text-[#333333]"
+                                        className="background-none flex cursor-pointer items-center border-none text-muted-foreground transition-colors hover:text-foreground"
                                     >
                                         <Minus size={11} />
                                     </button>
-                                    <span className="min-w-4 text-center text-xs font-semibold text-[#333333]">
+                                    <span className="min-w-4 text-center text-xs font-semibold text-foreground">
                                         {item.quantity}
                                     </span>
                                     <button
                                         onClick={() =>
                                             onUpdateQuantity(item.id, 1)
                                         }
-                                        className="background-none flex cursor-pointer items-center border-none text-gray-400 transition-colors hover:text-[#333333]"
+                                        className="background-none flex cursor-pointer items-center border-none text-muted-foreground transition-colors hover:text-foreground"
                                     >
                                         <Plus size={11} />
                                     </button>
@@ -270,13 +299,13 @@ export default function CartDrawer({
 
                 {cartItems.length === 0 && (
                     <div className="py-16 text-center">
-                        <ShoppingBag className="mx-auto mb-3 h-10 w-10 text-gray-300" />
-                        <p className="text-sm text-[#666666]">
+                        <ShoppingBag className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
+                        <p className="text-sm text-muted-foreground">
                             Your shopping bag is empty.
                         </p>
                         <button
                             onClick={onClose}
-                            className="mx-auto mt-3 block text-xs font-semibold tracking-wider text-[#859b84] uppercase transition-colors hover:text-[#728871]"
+                            className="mx-auto mt-3 block text-xs font-semibold tracking-wider text-primary uppercase transition-colors hover:text-primary/80"
                         >
                             Continue Shopping →
                         </button>

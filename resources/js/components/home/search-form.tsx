@@ -1,5 +1,4 @@
-import { Form, Input, Select, Button } from 'antd';
-import React from 'react';
+import { Button, Form, Input, Select } from 'antd';
 
 const { Option } = Select;
 
@@ -17,7 +16,7 @@ export default function SearchForm({ categories, onSearch }: SearchFormProps) {
                         placeholder="Search products..."
                         allowClear
                         size="large"
-                        style={{ borderRadius: 12 }}
+                        style={{ borderRadius: 'var(--radius)' }}
                     />
                 </Form.Item>
                 <div className="flex w-full gap-3 md:w-auto md:gap-4">
@@ -60,8 +59,7 @@ export default function SearchForm({ categories, onSearch }: SearchFormProps) {
                         htmlType="submit"
                         size="large"
                         style={{
-                            borderRadius: 12,
-                            background: '#3C3542',
+                            borderRadius: 'var(--radius)',
                             width: '100%',
                         }}
                     >

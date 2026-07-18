@@ -2,6 +2,7 @@ import { router, usePage } from '@inertiajs/react';
 import { Check, ChevronsUpDown, Plus, Users } from 'lucide-react';
 import CreateTeamModal from '@/components/create-team-modal';
 import { Button } from '@/components/ui/button';
+import { useSidebar } from '@/components/ui/sidebar';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -21,6 +22,7 @@ type TeamSwitcherProps = {
 export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
     const page = usePage();
     const isMobile = useIsMobile();
+    const { state } = useSidebar();
     const currentTeam = page.props.currentTeam;
     const teams = page.props.teams ?? [];
 
@@ -70,30 +72,22 @@ export function TeamSwitcher({ inHeader = false }: TeamSwitcherProps) {
                                 : 'hidden size-4 shrink-0 group-data-[collapsible=icon]:block'
                         }
                     />
-                    <div
-                        className={
-                            inHeader
-                                ? 'grid flex-1 text-left text-sm leading-tight'
-                                : 'grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden'
-                        }
-                    >
-                        <span
-                            className={
-                                inHeader
-                                    ? 'max-w-[120px] truncate font-medium'
-                                    : 'truncate font-semibold'
-                            }
-                        >
-                            {currentTeam?.name ?? 'Select team'}
-                        </span>
-                    </div>
-                    <ChevronsUpDown
-                        className={
-                            inHeader
-                                ? 'size-4 opacity-50'
-                                : 'ml-auto group-data-[collapsible=icon]:hidden'
-                        }
-                    />
+                    {(inHeader || state === 'expanded') && (
+                        <div className="grid flex-1 text-left text-sm leading-tight">
+                            <span
+                                className={
+                                    inHeader
+                                        ? 'max-w-[120px] truncate font-medium'
+                                        : 'truncate font-semibold'
+                                }
+                            >
+                                {currentTeam?.name ?? 'Select team'}
+                            </span>
+                        </div>
+                    )}
+                    {(inHeader || state === 'expanded') && (
+                        <ChevronsUpDown className="ml-auto size-4 opacity-50" />
+                    )}
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent

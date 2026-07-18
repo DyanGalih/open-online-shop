@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
-use Illuminate\Auth\Events\Registered;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\GuestAccountCreated;
+use App\Models\User;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class GuestRegistrationService
 {
@@ -28,7 +28,7 @@ class GuestRegistrationService
         ]);
 
         event(new Registered($user));
-        
+
         Mail::to($user->email)->send(new GuestAccountCreated($user, $password));
 
         return $user;

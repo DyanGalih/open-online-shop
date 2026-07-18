@@ -6,9 +6,7 @@ use App\Models\Order;
 
 class OrderManagementService
 {
-    public function __construct(private InvoiceService $invoiceService)
-    {
-    }
+    public function __construct(private InvoiceService $invoiceService) {}
 
     public function markAsPaid(Order $order): void
     {
@@ -28,8 +26,8 @@ class OrderManagementService
     public function processWebhookPayment(string $orderId, string $status): bool
     {
         $order = Order::find($orderId);
-        
-        if (!$order) {
+
+        if (! $order) {
             return false;
         }
 

@@ -9,6 +9,6 @@ class PaymentService
     public function createPayment(Order $order): string
     {
         // Mocking midtrans snap url generation
-        return 'https://app.sandbox.midtrans.com/snap/v2/vtweb/mocked-token-for-order-' . $order->id;
+        return 'https://app.sandbox.midtrans.com/snap/v2/vtweb/mocked-token-for-order-'.$order->id;
     }
 }
