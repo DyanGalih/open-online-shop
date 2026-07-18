@@ -227,10 +227,10 @@ export default function Index({
                                         Showing{' '}
                                         {selectedCategoryId
                                             ? categories.find(
-                                                (c) =>
-                                                    c.id ===
-                                                    selectedCategoryId,
-                                            )?.name
+                                                  (c) =>
+                                                      c.id ===
+                                                      selectedCategoryId,
+                                              )?.name
                                             : 'All'}{' '}
                                         Collection
                                     </p>

@@ -17,7 +17,11 @@ interface Props {
     currentCategory?: number | string;
 }
 
-export default function Index({ products, categories, currentCategory }: Props) {
+export default function Index({
+    products,
+    categories,
+    currentCategory,
+}: Props) {
     const { post, processing } = useForm({});
 
     const addToCart = (productId: string) => {
