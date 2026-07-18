@@ -8,10 +8,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ProductIndexController extends Controller
 {
-    public function __invoke()
+    public function __invoke(): Response
     {
         $products = Product::with('category')->latest()->get();
         $categories = Category::orderBy('name')->get();

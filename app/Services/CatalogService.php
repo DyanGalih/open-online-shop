@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 
 class CatalogService
 {
+    /** @return Collection<int, Product> */
     public function getActiveProducts(Request $request): Collection
     {
         $query = Product::where('status', 'active')->with('category');
@@ -22,6 +23,7 @@ class CatalogService
         return $query->latest()->get();
     }
 
+    /** @return Collection<int, Category> */
     public function getAllCategories(): Collection
     {
         return Category::all();

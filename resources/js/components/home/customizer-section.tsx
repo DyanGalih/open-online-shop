@@ -1,9 +1,9 @@
-import boxKraft from '@/../../resources/images/home/box-kraft.svg';
-import boxSage from '@/../../resources/images/home/box-sage.svg';
 import { router } from '@inertiajs/react';
 import { Button, Checkbox, Input, Radio, Tooltip, message } from 'antd';
 import { Gift, Info } from 'lucide-react';
 import { useState } from 'react';
+import boxKraft from '@/../../resources/images/home/box-kraft.svg';
+import boxSage from '@/../../resources/images/home/box-sage.svg';
 
 interface Product {
     id: number;
@@ -274,10 +274,11 @@ export default function CustomizerSection({
                                             onClick={() =>
                                                 handleItemToggle(item.id)
                                             }
-                                            className={`flex items-center justify-between border p-3 text-left transition-all ${isSelected
+                                            className={`flex items-center justify-between border p-3 text-left transition-all ${
+                                                isSelected
                                                     ? 'border-primary bg-background'
                                                     : 'border-border hover:border-primary'
-                                                }`}
+                                            }`}
                                         >
                                             <div>
                                                 <div className="text-xs leading-tight font-semibold text-foreground">
@@ -335,8 +336,8 @@ export default function CustomizerSection({
                             {isSubmitting
                                 ? 'Adding to Cart...'
                                 : selectedItemIds.length < 3
-                                    ? 'Select At Least 3 Items'
-                                    : 'Add Custom Box to Cart'}
+                                  ? 'Select At Least 3 Items'
+                                  : 'Add Custom Box to Cart'}
                         </Button>
                     </div>
                 </div>

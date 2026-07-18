@@ -14,7 +14,10 @@ use App\Http\Controllers\Home\HomeController;
 use App\Http\Controllers\Reviews\StoreReviewController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Middleware\EnsureTeamMembership;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::get('/', HomeController::class)->name('home');
 Route::post('/gift-box', GiftBoxStoreController::class)->name('gift-box.store');
@@ -41,19 +44,35 @@ Route::post('/webhooks/midtrans', [MidtransController::class, 'webhook'])->name(
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', AuthShowLoginController::class)->name('login');
-    Route::post('/login', AuthLoginController::class)->name('login.post');
+    Route::post('/login', AuthLoginController::class)->name('login.store');
     Route::get('/register', AuthShowRegisterController::class)->name('register');
-    Route::post('/register', AuthRegisterController::class)->name('register.post');
+    Route::post('/register', AuthRegisterController::class)->name('register.store');
 });
 
 Route::middleware(['auth'])->group(function () {
     Route::post('/logout', AuthLogoutController::class)->name('logout');
 });
 
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', function (Request $request) {
+        $team = $request->user()->currentTeam ?? $request->user()->personalTeam();
+
+        return redirect()->route('dashboard', ['current_team' => $team->slug]);
+    })->name('dashboard.redirect');
+});
+
+Route::get('/two-factor-challenge', function (Request $request) {
+    if (! Auth::check() && ! $request->session()->has('login.id')) {
+        return redirect()->route('login');
+    }
+
+    return Inertia::render('auth/two-factor-challenge');
+})->name('two-factor.login');
+
 Route::prefix('{current_team}')
     ->middleware(['auth', 'verified', EnsureTeamMembership::class])
     ->group(function () {
-        Route::get('dashboard', DashboardController::class)->name('dashboard');
+        Route::get('/dashboard', DashboardController::class)->name('dashboard');
     });
 
 Route::middleware(['auth'])->group(function () {
@@ -86,6 +105,7 @@ use App\Http\Controllers\Admin\ProductDestroyController;
 use App\Http\Controllers\Admin\ProductIndexController;
 use App\Http\Controllers\Admin\ProductStoreController;
 use App\Http\Controllers\Admin\ProductUpdateController;
+
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/categories', CategoryIndexController::class)->name('categories.index');
     Route::post('/categories', CategoryStoreController::class)->name('categories.store');

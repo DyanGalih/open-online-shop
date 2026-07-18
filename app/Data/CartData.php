@@ -10,6 +10,7 @@ use Spatie\LaravelData\Mappers\CamelCaseMapper;
 class CartData extends Data
 {
     public function __construct(
+        /** @var array<int, mixed> */
         public array $items = [],
         public int $total = 0,
     ) {}

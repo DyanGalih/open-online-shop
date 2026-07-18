@@ -2,7 +2,6 @@ import { router, usePage } from '@inertiajs/react';
 import { Check, ChevronsUpDown, Plus, Users } from 'lucide-react';
 import CreateTeamModal from '@/components/create-team-modal';
 import { Button } from '@/components/ui/button';
-import { useSidebar } from '@/components/ui/sidebar';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -11,6 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useSidebar } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { switchMethod } from '@/routes/teams';
 import type { Team } from '@/types';

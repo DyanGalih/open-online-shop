@@ -8,10 +8,11 @@ use App\Services\CheckoutService;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Symfony\Component\HttpFoundation\Response;
 
 class CheckoutProcessController extends Controller
 {
-    public function __invoke(CheckoutData $data, Request $request, CheckoutService $checkoutService, PaymentService $paymentService)
+    public function __invoke(CheckoutData $data, Request $request, CheckoutService $checkoutService, PaymentService $paymentService): Response
     {
         $cart = $request->session()->get('cart', []);
 

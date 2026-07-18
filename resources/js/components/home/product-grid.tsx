@@ -1,7 +1,7 @@
-import productPlaceholder from '@/../../resources/images/home/product-placeholder.svg';
-import { Product } from '@/types/home-page';
 import { Heart, Star } from 'lucide-react';
+import productPlaceholder from '@/../../resources/images/home/product-placeholder.svg';
 import { formatCurrency } from '@/lib/currency';
+import type { Product } from '@/types/home-page';
 
 interface ProductGridProps {
     products: Product[];
@@ -58,14 +58,14 @@ export default function ProductGrid({
                         <div className="mt-2 flex items-center">
                             <div className="flex space-x-0.5 text-[#e8c07d]">
                                 {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star 
-                                        key={star} 
-                                        className={`h-3 w-3 ${star <= Math.round(p.rating || 0) ? 'fill-current' : 'fill-none stroke-current opacity-50'}`} 
+                                    <Star
+                                        key={star}
+                                        className={`h-3 w-3 ${star <= Math.round(p.rating || 0) ? 'fill-current' : 'fill-none stroke-current opacity-50'}`}
                                     />
                                 ))}
                             </div>
                             <span className="ml-2 text-[11px] text-muted-foreground">
-                                ({p.reviews_count || 0})
+                                ({p.reviewsCount || 0})
                             </span>
                         </div>
 

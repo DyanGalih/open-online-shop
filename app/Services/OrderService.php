@@ -4,23 +4,26 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 class OrderService
 {
-    public function getUserOrders($user): Collection
+    /** @return Collection<int, Order> */
+    public function getUserOrders(User $user): Collection
     {
         return $user->orders()->with('items.product')->latest()->get();
     }
 
-    public function getUserOrder($user, string $id): Order
+    public function getUserOrder(User $user, string $id): Order
     {
         return $user->orders()->with(['items.product.reviews' => function ($query) use ($user) {
             $query->where('user_id', $user->id);
         }])->findOrFail($id);
     }
 
-    public function getDigitalProductFile($user, string $orderId, string $productId): array
+    /** @return array<string, string> */
+    public function getDigitalProductFile(User $user, string $orderId, string $productId): array
     {
         $order = $user->orders()->with('items')->findOrFail($orderId);
 

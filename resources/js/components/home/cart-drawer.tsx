@@ -1,9 +1,9 @@
-import productPlaceholder from '@/../../resources/images/home/product-placeholder.svg';
-import { formatCurrency } from '@/lib/currency';
 import { router } from '@inertiajs/react';
 import { Button, Drawer, Grid, Input } from 'antd';
 import { Gift, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { useState } from 'react';
+import productPlaceholder from '@/../../resources/images/home/product-placeholder.svg';
+import { formatCurrency } from '@/lib/currency';
 
 export interface CartItem {
     id: string; // unique cart item key
@@ -43,19 +43,30 @@ export default function CartDrawer({
     const handleCheckout = async () => {
         const standardItems = cartItems
             .filter((item) => item.type === 'standard' && item.productId)
-            .map((item) => ({ productId: item.productId!, quantity: item.quantity }));
+            .map((item) => ({
+                productId: item.productId!,
+                quantity: item.quantity,
+            }));
 
-        if (standardItems.length === 0) return;
+        if (standardItems.length === 0) {
+            return;
+        }
 
         setCheckingOut(true);
+
         try {
-            const csrfToken = (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content ?? '';
+            const csrfToken =
+                (
+                    document.querySelector(
+                        'meta[name="csrf-token"]',
+                    ) as HTMLMetaElement
+                )?.content ?? '';
             const response = await fetch('/cart/sync', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                 },
                 body: JSON.stringify({ items: standardItems }),
             });
@@ -194,7 +205,8 @@ export default function CartDrawer({
                             fontSize: '0.85rem',
                             border: 'none',
                             letterSpacing: '0.05em',
-                            opacity: (checkingOut || cartItems.length === 0) ? 0.7 : 1,
+                            opacity:
+                                checkingOut || cartItems.length === 0 ? 0.7 : 1,
                         }}
                         className="tracking-wider uppercase"
                     >

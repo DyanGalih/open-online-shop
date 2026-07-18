@@ -1,5 +1,5 @@
 import categoryPlaceholder from '@/../../resources/images/home/category-placeholder.svg';
-import { Category } from '@/types/home-page';
+import type { Category } from '@/types/home-page';
 
 interface CategoryListProps {
     categories: Category[];
@@ -29,10 +29,11 @@ export default function CategoryList({
                     {/* "All" Category card */}
                     <button
                         onClick={() => onSelectCategory(null)}
-                        className={`group block border bg-white text-left transition-all duration-300 ${selectedCategoryId === null
-                            ? 'border-primary shadow-md'
-                            : 'border-border hover:shadow-md'
-                            }`}
+                        className={`group block border bg-white text-left transition-all duration-300 ${
+                            selectedCategoryId === null
+                                ? 'border-primary shadow-md'
+                                : 'border-border hover:shadow-md'
+                        }`}
                     >
                         <div className="aspect-square w-full overflow-hidden bg-gray-200">
                             <img
@@ -58,10 +59,11 @@ export default function CategoryList({
                             <button
                                 key={c.id}
                                 onClick={() => onSelectCategory(c.id)}
-                                className={`group block border bg-white text-left transition-all duration-300 ${isSelected
-                                    ? 'border-primary shadow-md'
-                                    : 'border-border hover:shadow-md'
-                                    }`}
+                                className={`group block border bg-white text-left transition-all duration-300 ${
+                                    isSelected
+                                        ? 'border-primary shadow-md'
+                                        : 'border-border hover:shadow-md'
+                                }`}
                             >
                                 <div className="aspect-square w-full overflow-hidden bg-gray-200">
                                     <img

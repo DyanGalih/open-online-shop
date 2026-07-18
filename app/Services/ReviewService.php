@@ -37,7 +37,7 @@ class ReviewService
             ]);
 
             // 3. Recalculate and cache average rating & count on the Product
-            $avg = Review::where('product_id', $productId)->avg('rating') ?: 0.0;
+            $avg = (float) (Review::where('product_id', $productId)->avg('rating') ?: 0.0);
             $count = Review::where('product_id', $productId)->count();
 
             Product::where('id', $productId)->update([

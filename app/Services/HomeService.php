@@ -10,22 +10,23 @@ use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
+use Spatie\LaravelData\DataCollection;
 
 class HomeService
 {
     /**
      * Get the general product catalog from the database.
      *
-     * @return Collection<int, ProductData>
+     * @return DataCollection<int, ProductData>
      */
-    public function getGeneralCatalog(): Collection
+    public function getGeneralCatalog(): DataCollection
     {
         $products = Product::where('status', 'active')
             ->with('category')
             ->latest()
             ->get();
 
-        return ProductData::collect($products);
+        return ProductData::collect($products, DataCollection::class);
     }
 
     /**
@@ -65,7 +66,8 @@ class HomeService
         ];
     }
 
-    public function searchProducts(HomeSearchData $dto): Collection
+    /** @return DataCollection<int|string, ProductData> */
+    public function searchProducts(HomeSearchData $dto): DataCollection
     {
         $query = Product::where('status', 'active')->with('category');
 
@@ -89,7 +91,7 @@ class HomeService
             $query->latest();
         }
 
-        return ProductData::collect($query->get());
+        return ProductData::collect($query->get(), DataCollection::class);
     }
 
     /**
@@ -128,9 +130,9 @@ class HomeService
         return [
             'success' => true,
             'gift_box' => [
-                'boxStyle' => $data->boxStyle,
+                'box_style' => $data->boxStyle,
                 'items' => ProductData::collect($selectedItems),
-                'cardMessage' => $data->cardMessage,
+                'card_message' => $data->cardMessage,
                 'price' => $finalTotal,
             ],
             'message' => 'Custom gift box added to cart successfully.',

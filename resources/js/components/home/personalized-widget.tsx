@@ -1,6 +1,6 @@
 import productPlaceholder from '@/../../resources/images/home/product-placeholder.svg';
 import { formatCurrency } from '@/lib/currency';
-import { Product } from '@/types/home-page';
+import type { Product } from '@/types/home-page';
 
 interface PersonalizedWidgetProps {
     recentlyViewed: Product[];
@@ -15,7 +15,11 @@ export default function PersonalizedWidget({
     hasRecentOrder,
     onAddToCart,
 }: PersonalizedWidgetProps) {
-    if (recentlyViewed.length === 0 && recommended.length === 0 && !hasRecentOrder) {
+    if (
+        recentlyViewed.length === 0 &&
+        recommended.length === 0 &&
+        !hasRecentOrder
+    ) {
         return null;
     }
 

@@ -6,10 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class AdminOrderShowController extends Controller
 {
-    public function __invoke(string $id)
+    public function __invoke(string $id): Response
     {
         $order = Order::with(['user', 'items'])->findOrFail($id);
 

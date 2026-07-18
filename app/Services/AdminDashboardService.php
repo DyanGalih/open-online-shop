@@ -8,6 +8,7 @@ use Carbon\Carbon;
 
 class AdminDashboardService
 {
+    /** @return array<string, mixed> */
     public function getMetrics(): array
     {
         $today = Carbon::today();

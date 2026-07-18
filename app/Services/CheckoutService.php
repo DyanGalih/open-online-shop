@@ -18,6 +18,7 @@ class CheckoutService
         private GuestRegistrationService $guestRegistration
     ) {}
 
+    /** @param array<string, int> $cart */
     public function getCheckoutDetails(array $cart): CheckoutDetailsData
     {
         $products = Product::whereIn('id', array_keys($cart))->get();
@@ -47,6 +48,7 @@ class CheckoutService
         );
     }
 
+    /** @param array<string, int> $cart */
     public function processCheckout(CheckoutData $data, array $cart): Order
     {
         $user = Auth::user();

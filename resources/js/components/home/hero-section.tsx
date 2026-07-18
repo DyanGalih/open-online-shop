@@ -1,5 +1,5 @@
-import heroImage from '@/../../resources/images/home/hero-main.png';
 import { ArrowRight } from 'lucide-react';
+import heroImage from '@/../../resources/images/home/hero-main.png';
 
 export default function HeroSection() {
     return (

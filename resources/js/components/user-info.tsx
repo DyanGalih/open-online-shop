@@ -12,10 +12,10 @@ export function UserInfo({
     team?: Team | null;
 }) {
     const getInitials = useInitials();
-    
+
     if (!user) {
-return null;
-}
+        return null;
+    }
 
     const showAvatar = Boolean(user.avatar && user.avatar !== '');
 

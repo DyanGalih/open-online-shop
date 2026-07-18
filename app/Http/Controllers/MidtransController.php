@@ -4,10 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Data\MidtransNotificationData;
 use App\Services\OrderManagementService;
+use Illuminate\Http\JsonResponse;
 
 class MidtransController extends Controller
 {
-    public function __invoke(MidtransNotificationData $data, OrderManagementService $orderManagement)
+    public function __invoke(MidtransNotificationData $data, OrderManagementService $orderManagement): JsonResponse
     {
         $success = $orderManagement->processWebhookPayment($data->orderId, $data->transactionStatus);
 

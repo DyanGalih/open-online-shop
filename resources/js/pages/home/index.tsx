@@ -1,3 +1,13 @@
+import { Head, usePage } from '@inertiajs/react';
+import { ConfigProvider } from 'antd';
+import {
+    Heart,
+    Leaf,
+    Menu as MenuIcon,
+    Search,
+    ShoppingBag,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import BenefitsSection from '@/components/home/benefits-section';
 import type { CartItem } from '@/components/home/cart-drawer';
 import CartDrawer from '@/components/home/cart-drawer';
@@ -9,18 +19,7 @@ import ProductGrid from '@/components/home/product-grid';
 import ReviewsSection from '@/components/home/reviews-section';
 import SearchModal from '@/components/home/search-modal';
 import { liviaTheme } from '@/themes/livia-theme';
-import { HomePageProps, Product } from '@/types/home-page';
-import { Head, usePage } from '@inertiajs/react';
-import { ConfigProvider } from 'antd';
-import {
-    Heart,
-    Leaf,
-    Menu as MenuIcon,
-    Search,
-    ShoppingBag,
-} from 'lucide-react';
-import { useState, useEffect } from 'react';
-
+import type { HomePageProps, Product } from '@/types/home-page';
 
 export default function Index({
     products,
@@ -38,8 +37,10 @@ export default function Index({
     const [cartItems, setCartItems] = useState<CartItem[]>(() => {
         if (typeof window !== 'undefined') {
             const saved = localStorage.getItem('online_shop_cart');
+
             return saved ? JSON.parse(saved) : [];
         }
+
         return [];
     });
 
@@ -101,7 +102,7 @@ export default function Index({
 
     // Client-side category filtering
     const filteredProducts = selectedCategoryId
-        ? products.filter((p) => p.categoryId === selectedCategoryId)
+        ? products.filter((p) => Number(p.categoryId) === selectedCategoryId)
         : products;
 
     const totalCartCount = cartItems.reduce(
@@ -111,7 +112,7 @@ export default function Index({
 
     return (
         <ConfigProvider theme={liviaTheme}>
-            <div className="min-h-screen bg-background font-sans selection:bg-primary selection:text-white flex flex-col">
+            <div className="flex min-h-screen flex-col bg-background font-sans selection:bg-primary selection:text-white">
                 <Head>
                     <title>{`${name} - Simple Things, Beautiful Life`}</title>
                     <meta
@@ -189,7 +190,7 @@ export default function Index({
                             >
                                 <ShoppingBag size={20} />
                                 {totalCartCount > 0 && (
-                                    <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[9px] font-bold leading-none text-white">
+                                    <span className="absolute -top-1.5 -right-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-accent px-1 text-[9px] leading-none font-bold text-white">
                                         {totalCartCount}
                                     </span>
                                 )}

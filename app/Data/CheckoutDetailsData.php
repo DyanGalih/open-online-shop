@@ -11,7 +11,7 @@ use Spatie\LaravelData\Mappers\CamelCaseMapper;
 class CheckoutDetailsData extends Data
 {
     public function __construct(
-        /** @var CartItemDetailsData[] */
+        /** @var DataCollection<int, CartItemDetailsData> */
         public DataCollection $cartItems,
         public int $total,
         public bool $requiresShipping,

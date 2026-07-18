@@ -5,10 +5,11 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class AdminOrderIndexController extends Controller
 {
-    public function __invoke()
+    public function __invoke(): Response
     {
         $orders = Order::with('user')->latest()->get();
 
