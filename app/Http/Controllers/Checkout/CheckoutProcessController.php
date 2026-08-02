@@ -27,9 +27,13 @@ class CheckoutProcessController extends Controller
         if ($order->payment_method === 'midtrans') {
             $paymentUrl = $paymentService->createPayment($order);
 
+            $request->session()->flash('session_key', $order->session_key);
+
             return Inertia::location($paymentUrl);
         }
 
-        return redirect()->route('orders.show', $order->id)->with('success', 'Order created. Please upload payment proof.');
+        return redirect()->route('orders.show', $order->id)
+            ->with('success', 'Order created. Please upload payment proof.')
+            ->with('session_key', $order->session_key);
     }
 }

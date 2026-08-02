@@ -8,14 +8,18 @@ use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
+use App\Data\OrderListRequestData;
+
 class OrderHistoryShowController extends Controller
 {
-    public function __invoke(string $id, OrderService $orderService): Response
+    public function __invoke(string $id, OrderListRequestData $data, OrderService $orderService): Response
     {
-        $order = $orderService->getUserOrder(Auth::user(), $id);
+        $order = $orderService->getOrder($id, Auth::user(), $data->email, $data->session_key);
 
         return Inertia::render('orders/show', [
             'order' => $order,
+            'guest_email' => $data->email,
+            'guest_session_key' => $data->session_key,
         ]);
     }
 }

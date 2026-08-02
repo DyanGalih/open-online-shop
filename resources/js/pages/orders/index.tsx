@@ -3,7 +3,7 @@ import { Clock, CheckCircle } from 'lucide-react';
 import React from 'react';
 import { formatCurrency } from '@/lib/currency';
 
-export default function Index({ orders }: { orders: any[] }) {
+export default function Index({ orders, guest_email, guest_session_key }: { orders: any[], guest_email?: string, guest_session_key?: string }) {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'paid':
@@ -93,7 +93,7 @@ export default function Index({ orders }: { orders: any[] }) {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <Link
-                                                href={`/orders/${order.id}`}
+                                                href={`/orders/${order.id}${guest_session_key ? `?email=${guest_email}&session_key=${guest_session_key}` : ''}`}
                                                 className="text-xs font-semibold text-primary hover:underline"
                                             >
                                                 View Details

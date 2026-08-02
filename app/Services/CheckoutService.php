@@ -68,6 +68,7 @@ class CheckoutService
             $order = Order::create([
                 'user_id' => $user->id,
                 'status' => 'pending',
+                'session_key' => \Illuminate\Support\Str::random(40),
                 'payment_method' => $data->paymentMethod,
                 'shipping_address' => $data->shippingAddress,
                 'total_amount' => $total,
