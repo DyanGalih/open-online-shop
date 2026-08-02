@@ -75,11 +75,12 @@ Route::prefix('{current_team}')
         Route::get('/dashboard', DashboardController::class)->name('dashboard');
     });
 
+Route::get('/orders', OrderHistoryIndexController::class)->name('orders.index');
+Route::get('/orders/{id}', OrderHistoryShowController::class)->name('orders.show');
+Route::post('/orders/{id}/payment-proof', OrderHistoryUploadProofController::class)->name('orders.payment-proof');
+Route::get('/orders/{id}/download/{product_id}', DownloadController::class)->name('orders.download');
+
 Route::middleware(['auth'])->group(function () {
-    Route::get('/orders', OrderHistoryIndexController::class)->name('orders.index');
-    Route::get('/orders/{id}', OrderHistoryShowController::class)->name('orders.show');
-    Route::post('/orders/{id}/payment-proof', OrderHistoryUploadProofController::class)->name('orders.payment-proof');
-    Route::get('/orders/{id}/download/{product_id}', DownloadController::class)->name('orders.download');
     Route::post('/products/{id}/reviews', StoreReviewController::class)->name('products.reviews.store');
 });
 

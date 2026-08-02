@@ -11,9 +11,9 @@ use Illuminate\Support\Facades\Auth;
 
 class OrderHistoryUploadProofController extends Controller
 {
-    public function __invoke(PaymentProofData $data, string $id, ManualPaymentService $manualPaymentService, OrderService $orderService): RedirectResponse
+    public function __invoke(\Illuminate\Http\Request $request, PaymentProofData $data, string $id, ManualPaymentService $manualPaymentService, OrderService $orderService): RedirectResponse
     {
-        $order = $orderService->getUserOrder(Auth::user(), $id);
+        $order = $orderService->getOrder($id, Auth::user(), $request->input('email'), $request->input('session_key'));
 
         $path = $data->paymentProof->store('payment_proofs', 'private');
 

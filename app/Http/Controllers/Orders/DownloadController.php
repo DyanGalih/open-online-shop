@@ -12,7 +12,7 @@ class DownloadController extends Controller
 {
     public function __invoke(string $orderId, string $productId, Request $request, OrderService $orderService): Response
     {
-        $fileDetails = $orderService->getDigitalProductFile($request->user(), $orderId, $productId);
+        $fileDetails = $orderService->getDigitalProductFile($request->user(), $orderId, $productId, $request->input('email'), $request->input('session_key'));
 
         return Storage::disk('private')->download($fileDetails['path'], $fileDetails['name']);
     }

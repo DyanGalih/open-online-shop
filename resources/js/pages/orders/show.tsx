@@ -1,4 +1,4 @@
-import { useForm, Head, Link } from '@inertiajs/react';
+import { useForm, Head, Link, usePage } from '@inertiajs/react';
 import {
     Star,
     Upload,
@@ -99,7 +99,8 @@ function ReviewForm({
     );
 }
 
-export default function Show({ order }: { order: any }) {
+export default function Show({ order, guest_email, guest_session_key }: { order: any, guest_email?: string, guest_session_key?: string }) {
+    const { auth } = usePage<any>().props;
     const { data, setData, post, processing, errors } = useForm({
         paymentProof: null as File | null,
     });
@@ -108,7 +109,8 @@ export default function Show({ order }: { order: any }) {
 
     const submitProof = (e: React.FormEvent) => {
         e.preventDefault();
-        post(`/orders/${order.id}/payment-proof`);
+        const queryParams = guest_email && guest_session_key ? `?email=${guest_email}&session_key=${guest_session_key}` : '';
+        post(`/orders/${order.id}/payment-proof${queryParams}`);
     };
 
     const toggleAccordion = (key: string) => {
@@ -147,8 +149,8 @@ export default function Show({ order }: { order: any }) {
                 {/* Back Button */}
                 <div className="mb-6">
                     <Link
-                        href="/orders"
-                        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground"
+                        href={`/orders${!auth?.user && guest_session_key ? `?email=${guest_email}&session_key=${guest_session_key}` : ''}`}
+                        className="inline-flex items-center text-sm font-medium text-muted-foreground hover:text-foreground"
                     >
                         <ArrowLeft className="mr-2 h-4 w-4" /> Back to Orders
                     </Link>
@@ -222,10 +224,10 @@ export default function Show({ order }: { order: any }) {
                                             {order.status === 'paid' &&
                                                 item.product.isDigital && (
                                                     <a
-                                                        href={`/orders/${order.id}/download/${item.product_id}`}
+                                                        href={`/orders/${order.id}/download/${item.product_id}${guest_session_key ? `?email=${guest_email}&session_key=${guest_session_key}` : ''}`}
                                                         className="mt-2 inline-flex items-center text-xs font-medium text-primary hover:underline"
                                                         download
-                                                    >
+                                                    >                                                      
                                                         <FileText className="mr-1 h-3.5 w-3.5" />{' '}
                                                         Download Product
                                                     </a>
