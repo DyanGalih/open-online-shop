@@ -13,6 +13,6 @@ class InvoiceService
     {
         $pdf = Pdf::loadView('pdf.invoice', ['order' => $order]);
 
-        Mail::to($order->user->email)->send(new OrderInvoice($order, $pdf->output()));
+        Mail::to($order->user->email)->queue(new OrderInvoice($order, $pdf->output()));
     }
 }

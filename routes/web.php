@@ -1,18 +1,42 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminOrderApproveController;
+use App\Http\Controllers\Admin\AdminOrderIndexController;
+use App\Http\Controllers\Admin\AdminOrderRejectController;
+use App\Http\Controllers\Admin\AdminOrderShowController;
+use App\Http\Controllers\Admin\CategoryDestroyController;
+use App\Http\Controllers\Admin\CategoryIndexController;
+use App\Http\Controllers\Admin\CategoryStoreController;
+use App\Http\Controllers\Admin\CategoryUpdateController;
+use App\Http\Controllers\Admin\ProductDestroyController;
+use App\Http\Controllers\Admin\ProductIndexController;
+use App\Http\Controllers\Admin\ProductStoreController;
+use App\Http\Controllers\Admin\ProductUpdateController;
 use App\Http\Controllers\Auth\AuthLoginController;
 use App\Http\Controllers\Auth\AuthLogoutController;
 use App\Http\Controllers\Auth\AuthRegisterController;
 use App\Http\Controllers\Auth\AuthShowLoginController;
 use App\Http\Controllers\Auth\AuthShowRegisterController;
+use App\Http\Controllers\Auth\RequestMagicLinkController;
+use App\Http\Controllers\Auth\VerifyMagicLinkController;
 use App\Http\Controllers\Cart\CartAddController;
 use App\Http\Controllers\Cart\CartRemoveController;
 use App\Http\Controllers\Cart\CartSyncController;
+use App\Http\Controllers\Checkout\CheckoutIndexController;
+use App\Http\Controllers\Checkout\CheckoutProcessController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Home\GiftBoxStoreController;
 use App\Http\Controllers\Home\HomeController;
+use App\Http\Controllers\MidtransController;
+use App\Http\Controllers\Orders\DownloadController;
+use App\Http\Controllers\Orders\OrderHistoryIndexController;
+use App\Http\Controllers\Orders\OrderHistoryShowController;
+use App\Http\Controllers\Orders\OrderHistoryUploadProofController;
+use App\Http\Controllers\Orders\ViewCheckoutOrderController;
 use App\Http\Controllers\Reviews\StoreReviewController;
 use App\Http\Controllers\Teams\TeamInvitationController;
+use App\Http\Middleware\EnsureAdminRole;
 use App\Http\Middleware\EnsureTeamMembership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,28 +49,22 @@ Route::post('/cart/add', CartAddController::class)->name('cart.add');
 Route::delete('/cart/remove/{product_id}', CartRemoveController::class)->name('cart.remove');
 Route::post('/cart/sync', CartSyncController::class)->name('cart.sync');
 
-use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\AdminOrderApproveController;
-use App\Http\Controllers\Admin\AdminOrderIndexController;
-use App\Http\Controllers\Admin\AdminOrderRejectController;
-use App\Http\Controllers\Admin\AdminOrderShowController;
-use App\Http\Controllers\Checkout\CheckoutIndexController;
-use App\Http\Controllers\Checkout\CheckoutProcessController;
-use App\Http\Controllers\MidtransController;
-use App\Http\Controllers\Orders\DownloadController;
-use App\Http\Controllers\Orders\OrderHistoryIndexController;
-use App\Http\Controllers\Orders\OrderHistoryShowController;
-use App\Http\Controllers\Orders\OrderHistoryUploadProofController;
-
 Route::get('/checkout', CheckoutIndexController::class)->name('checkout.index');
 Route::post('/checkout/process', CheckoutProcessController::class)->name('checkout.process');
-Route::post('/webhooks/midtrans', [MidtransController::class, 'webhook'])->name('webhooks.midtrans');
+Route::post('/webhooks/midtrans', MidtransController::class)->name('webhooks.midtrans');
+
+// Single-use signed read-only order view (FR-002 / FR-003)
+Route::get('/orders/checkout/{order}/view', ViewCheckoutOrderController::class)->name('orders.checkout.view');
 
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', AuthShowLoginController::class)->name('login');
     Route::post('/login', AuthLoginController::class)->name('login.store');
     Route::get('/register', AuthShowRegisterController::class)->name('register');
     Route::post('/register', AuthRegisterController::class)->name('register.store');
+
+    // Passwordless Magic Link Login (FR-004a)
+    Route::post('/login/link', RequestMagicLinkController::class)->name('login.link.store');
+    Route::get('/login/link/verify/{signer}', VerifyMagicLinkController::class)->name('login.link.verify');
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -82,32 +100,18 @@ Route::get('/orders/{id}/download/{product_id}', DownloadController::class)->nam
 
 Route::middleware(['auth'])->group(function () {
     Route::post('/products/{id}/reviews', StoreReviewController::class)->name('products.reviews.store');
-});
-
-Route::middleware(['auth'])->group(function () {
     Route::get('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
     Route::delete('invitations/{invitation}', [TeamInvitationController::class, 'decline'])->name('invitations.decline');
 });
 
-// Admin Routes (Simplistic middleware for MVP, assuming role checking exists or is added later)
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+// Admin Routes (Guarded by EnsureAdminRole RBAC - TASK-SEC-003)
+Route::middleware(['auth', EnsureAdminRole::class])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', AdminDashboardController::class)->name('dashboard');
     Route::get('/orders', AdminOrderIndexController::class)->name('orders.index');
     Route::get('/orders/{id}', AdminOrderShowController::class)->name('orders.show');
     Route::post('/orders/{id}/approve', AdminOrderApproveController::class)->name('orders.approve');
     Route::post('/orders/{id}/reject', AdminOrderRejectController::class)->name('orders.reject');
-});
 
-use App\Http\Controllers\Admin\CategoryDestroyController;
-use App\Http\Controllers\Admin\CategoryIndexController;
-use App\Http\Controllers\Admin\CategoryStoreController;
-use App\Http\Controllers\Admin\CategoryUpdateController;
-use App\Http\Controllers\Admin\ProductDestroyController;
-use App\Http\Controllers\Admin\ProductIndexController;
-use App\Http\Controllers\Admin\ProductStoreController;
-use App\Http\Controllers\Admin\ProductUpdateController;
-
-Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/categories', CategoryIndexController::class)->name('categories.index');
     Route::post('/categories', CategoryStoreController::class)->name('categories.store');
     Route::put('/categories/{category}', CategoryUpdateController::class)->name('categories.update');

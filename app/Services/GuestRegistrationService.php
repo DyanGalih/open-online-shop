@@ -11,12 +11,18 @@ use Illuminate\Support\Str;
 
 class GuestRegistrationService
 {
-    public function registerGuest(string $email, string $name): User
+    /**
+     * @return array{user: User, is_new: bool}
+     */
+    public function registerGuest(string $email, string $name): array
     {
         $user = User::where('email', $email)->first();
 
         if ($user) {
-            return $user;
+            return [
+                'user' => $user,
+                'is_new' => false,
+            ];
         }
 
         $password = Str::random(12);
@@ -29,8 +35,11 @@ class GuestRegistrationService
 
         event(new Registered($user));
 
-        Mail::to($user->email)->send(new GuestAccountCreated($user, $password));
+        Mail::to($user->email)->queue(new GuestAccountCreated($user, $password));
 
-        return $user;
+        return [
+            'user' => $user,
+            'is_new' => true,
+        ];
     }
 }

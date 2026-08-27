@@ -3,6 +3,10 @@
 use App\Models\TeamInvitation;
 use Illuminate\Support\Facades\Schedule;
 
+Schedule::command('orders:cancel-expired')
+    ->hourly()
+    ->description('Cancel expired pending orders');
+
 Schedule::call(function () {
     TeamInvitation::query()
         ->whereNotNull('expires_at')

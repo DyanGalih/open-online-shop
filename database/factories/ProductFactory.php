@@ -27,6 +27,7 @@ class ProductFactory extends Factory
             'is_digital' => false,
             'stock' => $this->faker->numberBetween(0, 100),
             'status' => 'active',
+            'image_path' => 'dummy-test.jpg',
         ];
     }
 }
