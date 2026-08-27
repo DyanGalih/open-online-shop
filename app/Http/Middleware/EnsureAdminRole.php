@@ -21,17 +21,7 @@ class EnsureAdminRole
             abort(403, 'Unauthorized. Administrative privileges required.');
         }
 
-        // Check if user is explicitly flagged as admin or has admin capability
-        if (method_exists($user, 'isAdmin') && $user->isAdmin()) {
-            return $next($request);
-        }
-
-        if (isset($user->is_admin) && (bool) $user->is_admin) {
-            return $next($request);
-        }
-
-        // Check current team role if applicable
-        if ($user->currentTeam && $user->ownsTeam($user->currentTeam)) {
+        if ($user->isAdmin()) {
             return $next($request);
         }
 

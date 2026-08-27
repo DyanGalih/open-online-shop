@@ -25,6 +25,7 @@ export default function Checkout({
             onSuccess: (page) => {
                 localStorage.removeItem('online_shop_cart');
                 const flash = page.props.flash as any;
+
                 if (flash?.session_key) {
                     localStorage.setItem('online_shop_session_key', flash.session_key);
                     localStorage.setItem('online_shop_guest_email', data.email);

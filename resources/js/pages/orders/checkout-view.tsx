@@ -2,8 +2,6 @@ import { Head, Link } from '@inertiajs/react';
 import {
     CheckCircle,
     Clock,
-    AlertCircle,
-    ShoppingBag,
     ArrowRight,
 } from 'lucide-react';
 import React from 'react';
