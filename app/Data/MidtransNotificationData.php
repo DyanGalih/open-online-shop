@@ -16,5 +16,11 @@ class MidtransNotificationData extends Data
 
         #[Required]
         public string $transactionStatus,
+
+        public ?string $statusCode = null,
+
+        public ?int $grossAmount = null,
+
+        public ?string $signatureKey = null,
     ) {}
 }

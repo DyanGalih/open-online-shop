@@ -10,10 +10,16 @@ class MidtransController extends Controller
 {
     public function __invoke(MidtransNotificationData $data, OrderManagementService $orderManagement): JsonResponse
     {
-        $success = $orderManagement->processWebhookPayment($data->orderId, $data->transactionStatus);
+        $success = $orderManagement->processWebhookPayment(
+            $data->orderId,
+            $data->transactionStatus,
+            $data->grossAmount,
+            $data->signatureKey,
+            $data->statusCode
+        );
 
         if (! $success) {
-            return response()->json(['message' => 'Order not found'], 404);
+            return response()->json(['message' => 'Invalid webhook payload or order not found'], 400);
         }
 
         return response()->json(['message' => 'Success']);

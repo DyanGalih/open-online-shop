@@ -21,6 +21,7 @@ class CategoryFactory extends Factory
             'name' => ucfirst($name),
             'slug' => Str::slug($name),
             'description' => $this->faker->sentence(),
+            'image_path' => 'dummy-test.jpg',
         ];
     }
 }

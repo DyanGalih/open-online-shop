@@ -1,4 +1,5 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, useForm } from '@inertiajs/react';
+import React, { useState } from 'react';
 import InputError from '@/components/input-error';
 import PasskeyVerify from '@/components/passkey-verify';
 import PasswordInput from '@/components/password-input';
@@ -25,6 +26,18 @@ export default function Login({
     canResetPassword,
     teamInvitation,
 }: Props) {
+    const [magicLinkSent, setMagicLinkSent] = useState(false);
+    const { data: magicData, setData: setMagicData, post: postMagic, processing: magicProcessing, errors: magicErrors } = useForm({
+        email: '',
+    });
+
+    const handleMagicSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        postMagic('/login/link', {
+            onSuccess: () => setMagicLinkSent(true),
+        });
+    };
+
     return (
         <>
             <Head title="Log in" />
@@ -105,6 +118,45 @@ export default function Login({
                                 Log in
                             </Button>
                         </div>
+
+                        <div className="relative my-2">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-background px-2 text-muted-foreground">
+                                    Or sign in with email link
+                                </span>
+                            </div>
+                        </div>
+
+                        {magicLinkSent ? (
+                            <div className="rounded-md border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-800">
+                                If your email is registered, we have sent a secure sign-in link to your inbox.
+                            </div>
+                        ) : (
+                            <form onSubmit={handleMagicSubmit} className="grid gap-3">
+                                <div className="grid gap-2">
+                                    <Input
+                                        type="email"
+                                        value={magicData.email}
+                                        onChange={(e) => setMagicData('email', e.target.value)}
+                                        placeholder="email@example.com"
+                                        required
+                                    />
+                                    <InputError message={magicErrors.email} />
+                                </div>
+                                <Button
+                                    type="submit"
+                                    variant="outline"
+                                    className="w-full"
+                                    disabled={magicProcessing}
+                                >
+                                    {magicProcessing && <Spinner />}
+                                    Send Sign-In Link
+                                </Button>
+                            </form>
+                        )}
 
                         <div className="text-center text-sm text-muted-foreground">
                             Don't have an account?{' '}

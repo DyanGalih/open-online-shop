@@ -5,17 +5,20 @@ namespace App\Services;
 use App\Data\CartItemDetailsData;
 use App\Data\CheckoutData;
 use App\Data\CheckoutDetailsData;
+use App\Mail\CheckoutConfirmation;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Spatie\LaravelData\DataCollection;
 
 class CheckoutService
 {
     public function __construct(
-        private GuestRegistrationService $guestRegistration
+        private GuestRegistrationService $guestRegistration,
+        private SignedUrlService $signedUrlService
     ) {}
 
     /** @param array<string, int> $cart */
@@ -54,8 +57,13 @@ class CheckoutService
         $user = Auth::user();
 
         if (! $user) {
-            $user = $this->guestRegistration->registerGuest($data->email, $data->name);
-            Auth::login($user);
+            $registrationResult = $this->guestRegistration->registerGuest($data->email, $data->name);
+            $user = $registrationResult['user'];
+
+            // Only log in if the user account was genuinely created as new (prevents account takeover)
+            if ($registrationResult['is_new']) {
+                Auth::login($user);
+            }
         }
 
         $products = Product::whereIn('id', array_keys($cart))->get();
@@ -64,11 +72,12 @@ class CheckoutService
             $total += $product->price * $cart[$product->id];
         }
 
-        return DB::transaction(function () use ($user, $data, $products, $cart, $total) {
+        $order = DB::transaction(function () use ($user, $data, $products, $cart, $total) {
             $order = Order::create([
                 'user_id' => $user->id,
                 'status' => 'pending',
                 'session_key' => \Illuminate\Support\Str::random(40),
+                'payment_due_at' => now()->addHour(),
                 'payment_method' => $data->paymentMethod,
                 'shipping_address' => $data->shippingAddress,
                 'total_amount' => $total,
@@ -86,5 +95,11 @@ class CheckoutService
 
             return $order;
         });
+
+        // Dispatch queued checkout confirmation with 1-hour signed URL (FR-002, FR-008)
+        $signedUrl = $this->signedUrlService->generateCheckoutLink($order);
+        Mail::to($user->email)->queue(new CheckoutConfirmation($order, $signedUrl));
+
+        return $order;
     }
 }
