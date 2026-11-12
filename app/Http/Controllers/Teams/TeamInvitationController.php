@@ -9,14 +9,17 @@ use App\Http\Requests\Teams\RespondToTeamInvitationRequest;
 use App\Models\Team;
 use App\Models\TeamInvitation;
 use App\Notifications\Teams\TeamInvitation as TeamInvitationNotification;
+use App\Services\TeamService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Inertia;
 
 class TeamInvitationController extends Controller
 {
+    public function __construct(
+        protected TeamService $teamService,
+    ) {}
     /**
      * Store a newly created invitation.
      */
@@ -60,20 +63,7 @@ class TeamInvitationController extends Controller
      */
     public function accept(RespondToTeamInvitationRequest $request, TeamInvitation $invitation): RedirectResponse
     {
-        $user = $request->user();
-
-        DB::transaction(function () use ($user, $invitation) {
-            $team = $invitation->team;
-
-            $team->memberships()->firstOrCreate(
-                ['user_id' => $user->id],
-                ['role' => $invitation->role],
-            );
-
-            $invitation->update(['accepted_at' => now()]);
-
-            $user->switchTeam($team);
-        });
+        $this->teamService->acceptInvitation($invitation, $request->user());
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Invitation accepted.')]);
 
