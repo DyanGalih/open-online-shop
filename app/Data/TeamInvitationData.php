@@ -33,7 +33,7 @@ class TeamInvitationData extends Data
 
         return [
             'email' => $emailRules,
-            'role' => ['required', 'string', Rule::enum(TeamRole::class)],
+            'role' => ['required', 'string', Rule::enum(TeamRole::class)->except([TeamRole::Owner])],
         ];
     }
 }
