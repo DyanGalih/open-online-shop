@@ -46,6 +46,8 @@ class AuthLoginController extends Controller
             return redirect()->intended($this->redirectPathForCurrentTeam($request, '/dashboard'));
         }
 
+        RateLimiter::hit($throttleKey, 60);
+
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
         ]);
