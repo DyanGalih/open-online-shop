@@ -16,7 +16,7 @@ class AuthLoginController extends Controller
 
     public function __invoke(Request $request): RedirectResponse
     {
-        $throttleKey = md5('login'.implode('|', [$request->input('email', ''), $request->ip()]));
+        $throttleKey = hash('sha256', 'login'.implode('|', [$request->input('email', ''), $request->ip()]));
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
@@ -45,6 +45,8 @@ class AuthLoginController extends Controller
 
             return redirect()->intended($this->redirectPathForCurrentTeam($request, '/dashboard'));
         }
+
+        RateLimiter::hit($throttleKey, 60);
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',

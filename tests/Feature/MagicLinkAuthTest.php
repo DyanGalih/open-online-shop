@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\RateLimiter;
 
 beforeEach(function () {
-    RateLimiter::clear('magic-link:email:'.sha1('test@example.com'));
+    RateLimiter::clear('magic-link:email:'.hash('sha256', 'test@example.com'));
     RateLimiter::clear('magic-link:ip:127.0.0.1');
 });
 

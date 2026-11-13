@@ -74,11 +74,9 @@ export default function CartDrawer({
             if (response.ok) {
                 router.visit('/checkout');
             } else {
-                console.error('Cart sync failed:', await response.text());
                 setCheckingOut(false);
             }
-        } catch (e) {
-            console.error('Cart sync error:', e);
+        } catch {
             setCheckingOut(false);
         }
     };

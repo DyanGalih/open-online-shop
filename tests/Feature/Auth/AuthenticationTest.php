@@ -108,7 +108,25 @@ test('users can logout', function () {
 test('users are rate limited', function () {
     $user = User::factory()->create();
 
-    RateLimiter::increment(md5('login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
+    RateLimiter::increment(hash('sha256', 'login'.implode('|', [$user->email, '127.0.0.1'])), amount: 5);
+
+    $response = $this->post(route('login.store'), [
+        'email' => $user->email,
+        'password' => 'wrong-password',
+    ]);
+
+    $response->assertTooManyRequests();
+});
+
+test('repeated failed logins trigger rate limiting', function () {
+    $user = User::factory()->create();
+
+    for ($i = 0; $i < 5; $i++) {
+        $this->post(route('login.store'), [
+            'email' => $user->email,
+            'password' => 'wrong-password',
+        ])->assertSessionHasErrors('email');
+    }
 
     $response = $this->post(route('login.store'), [
         'email' => $user->email,
