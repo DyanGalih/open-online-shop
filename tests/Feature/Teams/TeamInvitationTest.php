@@ -311,3 +311,20 @@ test('expired invitations cannot be accepted', function () {
 
     expect($invitedUser->fresh()->belongsToTeam($team))->toBeFalse();
 });
+
+test('team invitations cannot be created with owner role', function () {
+    $owner = User::factory()->create();
+    $team = Team::factory()->create();
+    $team->members()->attach($owner, ['role' => TeamRole::Owner->value]);
+
+    $response = $this->actingAs($owner)
+        ->post(route('teams.invitations.store', $team), [
+            'email' => 'invited@example.com',
+            'role' => TeamRole::Owner->value,
+        ]);
+
+    $response->assertSessionHasErrors('role');
+    $this->assertDatabaseMissing('team_invitations', [
+        'email' => 'invited@example.com',
+    ]);
+});
