@@ -18,7 +18,7 @@ class RequestMagicLinkController extends Controller
 {
     public function __invoke(MagicLinkRequestData $data, Request $request, SignedUrlService $signedUrlService): JsonResponse|RedirectResponse
     {
-        $emailKey = 'magic-link:email:'.sha1(strtolower(trim($data->email)));
+        $emailKey = 'magic-link:email:'.hash('sha256', strtolower(trim($data->email)));
         $ipKey = 'magic-link:ip:'.$request->ip();
 
         if (RateLimiter::tooManyAttempts($emailKey, 3) || RateLimiter::tooManyAttempts($ipKey, 3)) {

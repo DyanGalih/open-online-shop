@@ -602,11 +602,17 @@ function SidebarMenuSkeleton({
 
   // wrapping in useState to ensure the width is stable across renders
   // also ensures we have a stable reference to the style object
-  const [skeletonStyle] = React.useState(() => (
-      {
-        "--skeleton-width": `${Math.floor(Math.random() * 40) + 50}%` // Random width between 50 to 90%.
-    } as React.CSSProperties
-  ))
+  const [skeletonStyle] = React.useState(() => {
+    let randomPercent = 70;
+    if (typeof window !== 'undefined' && window.crypto) {
+      const randomArray = new Uint32Array(1);
+      window.crypto.getRandomValues(randomArray);
+      randomPercent = (randomArray[0] % 40) + 50;
+    }
+    return {
+      "--skeleton-width": `${randomPercent}%`,
+    } as React.CSSProperties;
+  });
 
   return (
     <div

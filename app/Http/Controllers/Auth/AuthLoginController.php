@@ -16,7 +16,7 @@ class AuthLoginController extends Controller
 
     public function __invoke(Request $request): RedirectResponse
     {
-        $throttleKey = md5('login'.implode('|', [$request->input('email', ''), $request->ip()]));
+        $throttleKey = hash('sha256', 'login'.implode('|', [$request->input('email', ''), $request->ip()]));
 
         if (RateLimiter::tooManyAttempts($throttleKey, 5)) {
             $seconds = RateLimiter::availableIn($throttleKey);
