@@ -35,7 +35,8 @@ use App\Http\Controllers\Orders\OrderHistoryShowController;
 use App\Http\Controllers\Orders\OrderHistoryUploadProofController;
 use App\Http\Controllers\Orders\ViewCheckoutOrderController;
 use App\Http\Controllers\Reviews\StoreReviewController;
-use App\Http\Controllers\Teams\TeamInvitationController;
+use App\Http\Controllers\Teams\TeamInvitationAcceptController;
+use App\Http\Controllers\Teams\TeamInvitationDeclineController;
 use App\Http\Middleware\EnsureAdminRole;
 use App\Http\Middleware\EnsureTeamMembership;
 use Illuminate\Http\Request;
@@ -100,8 +101,8 @@ Route::get('/orders/{id}/download/{product_id}', DownloadController::class)->nam
 
 Route::middleware(['auth'])->group(function () {
     Route::post('/products/{id}/reviews', StoreReviewController::class)->name('products.reviews.store');
-    Route::get('invitations/{invitation}/accept', [TeamInvitationController::class, 'accept'])->name('invitations.accept');
-    Route::delete('invitations/{invitation}', [TeamInvitationController::class, 'decline'])->name('invitations.decline');
+    Route::get('invitations/{invitation}/accept', TeamInvitationAcceptController::class)->name('invitations.accept');
+    Route::delete('invitations/{invitation}', TeamInvitationDeclineController::class)->name('invitations.decline');
 });
 
 // Admin Routes (Guarded by EnsureAdminRole RBAC - TASK-SEC-003)
