@@ -1,7 +1,10 @@
 <?php
 
-use App\Http\Controllers\Settings\ProfileController;
-use App\Http\Controllers\Settings\SecurityController;
+use App\Http\Controllers\Settings\PasswordUpdateController;
+use App\Http\Controllers\Settings\ProfileDestroyController;
+use App\Http\Controllers\Settings\ProfileEditController;
+use App\Http\Controllers\Settings\ProfileUpdateController;
+use App\Http\Controllers\Settings\SecurityEditController;
 use App\Http\Controllers\Teams\TeamController;
 use App\Http\Controllers\Teams\TeamInvitationController;
 use App\Http\Controllers\Teams\TeamMemberController;
@@ -12,18 +15,18 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth'])->group(function () {
     Route::redirect('settings', '/settings/profile');
 
-    Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('settings/profile', ProfileEditController::class)->name('profile.edit');
+    Route::patch('settings/profile', ProfileUpdateController::class)->name('profile.update');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::delete('settings/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::delete('settings/profile', ProfileDestroyController::class)->name('profile.destroy');
 
-    Route::get('settings/security', [SecurityController::class, 'edit'])
+    Route::get('settings/security', SecurityEditController::class)
         ->middleware(RequirePassword::class)
         ->name('security.edit');
 
-    Route::put('settings/password', [SecurityController::class, 'update'])
+    Route::put('settings/password', PasswordUpdateController::class)
         ->middleware('throttle:6,1')
         ->name('user-password.update');
 
