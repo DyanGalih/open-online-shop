@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Teams;
 
 use App\Actions\Teams\CreateTeam;
+use App\Data\TeamStoreData;
+use App\Data\TeamUpdateData;
 use App\Enums\TeamRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Teams\DeleteTeamRequest;
-use App\Http\Requests\Teams\SaveTeamRequest;
 use App\Models\Membership;
 use App\Models\Team;
 use App\Models\User;
@@ -37,9 +38,9 @@ class TeamController extends Controller
     /**
      * Store a newly created team.
      */
-    public function store(SaveTeamRequest $request, CreateTeam $createTeam): RedirectResponse
+    public function store(Request $request, TeamStoreData $data, CreateTeam $createTeam): RedirectResponse
     {
-        $team = $createTeam->handle($request->user(), $request->validated('name'));
+        $team = $createTeam->handle($request->user(), $data->name);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Team created.')]);
 
@@ -91,11 +92,11 @@ class TeamController extends Controller
     /**
      * Update the specified team.
      */
-    public function update(SaveTeamRequest $request, Team $team): RedirectResponse
+    public function update(TeamUpdateData $data, Team $team): RedirectResponse
     {
         Gate::authorize('update', $team);
 
-        $team = $this->teamService->updateTeam($team, $request->validated('name'));
+        $team = $this->teamService->updateTeam($team, $data->name);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Team updated.')]);
 
