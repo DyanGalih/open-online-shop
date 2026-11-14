@@ -146,3 +146,29 @@ it('processes webhook payment with decimal gross amount string and valid signatu
     $response->assertOk();
     expect($order->fresh()->status)->toBe('paid');
 });
+
+it('rejects webhook notifications when gross amount has fractional difference from order total', function () {
+    config(['services.midtrans.server_key' => 'secret-server-key']);
+
+    $user = User::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'pending',
+        'total_amount' => 50000,
+    ]);
+
+    $statusCode = '200';
+    $tamperedAmount = '49999.60';
+    $signature = hash('sha512', $order->id.$statusCode.$tamperedAmount.'secret-server-key');
+
+    $response = $this->postJson('/webhooks/midtrans', [
+        'order_id' => $order->id,
+        'transaction_status' => 'settlement',
+        'status_code' => $statusCode,
+        'gross_amount' => $tamperedAmount,
+        'signature_key' => $signature,
+    ]);
+
+    $response->assertBadRequest();
+    expect($order->fresh()->status)->toBe('pending');
+});

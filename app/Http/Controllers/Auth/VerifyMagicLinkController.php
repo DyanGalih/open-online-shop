@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\SignedUrlService;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -24,9 +25,13 @@ class VerifyMagicLinkController extends Controller
         }
 
         $tokenHash = hash('sha256', $token);
-        $cachedUserId = Cache::lock("magic-link:consume:{$tokenHash}", 10)->block(5, function () use ($tokenHash) {
-            return Cache::pull("magic-link:token:{$tokenHash}");
-        });
+        try {
+            $cachedUserId = Cache::lock("magic-link:consume:{$tokenHash}", 10)->block(5, function () use ($tokenHash) {
+                return Cache::pull("magic-link:token:{$tokenHash}");
+            });
+        } catch (LockTimeoutException) {
+            return redirect()->route('login')->with('error', 'This sign-in link has already been used or has expired. Please request a new one.');
+        }
 
         if (! $cachedUserId || (string) $cachedUserId !== (string) $signer) {
             return redirect()->route('login')->with('error', 'This sign-in link has already been used or has expired. Please request a new one.');

@@ -72,3 +72,26 @@ it('rejects replayed magic links on second attempt (single-use consumption)', fu
     expect(session('error'))->toContain('already been used')
         ->and(Auth::check())->toBeFalse();
 });
+
+it('redirects with error when magic link lock times out', function () {
+    $user = User::factory()->create();
+
+    $signedUrlService = app(SignedUrlService::class);
+    $loginUrl = $signedUrlService->generateMagicLoginLink($user);
+
+    parse_str((string) parse_url($loginUrl, PHP_URL_QUERY), $queryParams);
+    $token = $queryParams['token'];
+    $tokenHash = hash('sha256', $token);
+
+    $lock = Cache::lock("magic-link:consume:{$tokenHash}", 10);
+    $lock->acquire();
+
+    try {
+        $response = $this->get($loginUrl);
+        $response->assertRedirect(route('login'));
+        expect(session('error'))->toContain('already been used')
+            ->and(Auth::check())->toBeFalse();
+    } finally {
+        $lock->release();
+    }
+});

@@ -54,7 +54,7 @@ class OrderManagementService
             return false;
         }
 
-        if ((int) round((float) $grossAmount) !== (int) $order->total_amount) {
+        if ((float) $grossAmount !== (float) $order->total_amount) {
             return false;
         }
 
