@@ -6,61 +6,49 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Gate;
 
 class OrderService
 {
     /** @return Collection<int, Order> */
-    public function getOrders(?User $user = null, ?string $email = null, ?string $sessionKey = null): Collection
+    public function getOrders(User $user): Collection
     {
-        if ($user) {
-            return $user->orders()->with('items.product')->latest()->get();
-        }
-
-        if ($email && $sessionKey) {
-            return Order::whereHas('user', function ($query) use ($email) {
-                $query->where('email', $email);
-            })->where('session_key', $sessionKey)->with('items.product')->latest()->get();
-        }
-
-        abort(403, 'Unauthorized.');
+        return $user->orders()->with('items.product')->latest()->get();
     }
 
-    public function getOrder(string $id, ?User $user = null, ?string $email = null, ?string $sessionKey = null): Order
+    public function loadOrderDetails(Order $order, User $user): Order
     {
-        $query = Order::with('items.product');
+        Gate::authorize('view', $order);
 
-        if ($user) {
-            $query->where('user_id', $user->id)
-                  ->with(['items.product.reviews' => function ($q) use ($user) {
-                      $q->where('user_id', $user->id);
-                  }]);
-        } elseif ($email && $sessionKey) {
-            $query->whereHas('user', function ($q) use ($email) {
-                $q->where('email', $email);
-            })->where('session_key', $sessionKey);
-        } else {
-            abort(403, 'Unauthorized.');
-        }
+        return $order->load([
+            'items.product',
+            'items.product.reviews' => function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            },
+        ]);
+    }
 
-        return $query->findOrFail($id);
+    public function getOrder(string $id, User $user): Order
+    {
+        $order = Order::with('items.product')->findOrFail($id);
+
+        return $this->loadOrderDetails($order, $user);
     }
 
     /** @return array<string, string> */
-    public function getDigitalProductFile(?User $user, string $orderId, string $productId, ?string $email = null, ?string $sessionKey = null): array
+    public function getDigitalProductFile(User $user, Order $order, Product $product): array
     {
-        $order = $this->getOrder($orderId, $user, $email, $sessionKey);
+        Gate::authorize('view', $order);
 
         if ($order->status !== 'paid') {
             abort(403, 'Order is not paid yet.');
         }
 
-        $item = $order->items->where('product_id', $productId)->first();
+        $item = $order->items->where('product_id', $product->id)->first();
 
         if (! $item) {
             abort(404, 'Product not found in this order.');
         }
-
-        $product = Product::findOrFail($productId);
 
         if (! $product->is_digital || ! $product->file_path) {
             abort(404, 'Digital product file not found.');

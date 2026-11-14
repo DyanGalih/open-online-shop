@@ -39,23 +39,22 @@ class OrderManagementService
 
     public function processWebhookPayment(string $orderId, string $status, ?int $grossAmount = null, ?string $signatureKey = null, ?string $statusCode = null): bool
     {
-        $order = Order::find($orderId);
+        $serverKey = config('services.midtrans.server_key');
+        if (! $serverKey || ! $signatureKey || ! $statusCode || $grossAmount === null) {
+            return false;
+        }
 
+        $expectedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
+        if (! hash_equals($expectedSignature, $signatureKey)) {
+            return false;
+        }
+
+        $order = Order::find($orderId);
         if (! $order) {
             return false;
         }
 
-        // Verify SHA-512 signature key if provided
-        $serverKey = config('services.midtrans.server_key');
-        if ($serverKey && $signatureKey && $statusCode && $grossAmount !== null) {
-            $expectedSignature = hash('sha512', $orderId.$statusCode.$grossAmount.$serverKey);
-            if (! hash_equals($expectedSignature, $signatureKey)) {
-                return false;
-            }
-        }
-
-        // Verify gross amount matches if provided
-        if ($grossAmount !== null && (int) $grossAmount !== (int) $order->total_amount) {
+        if ((int) $grossAmount !== (int) $order->total_amount) {
             return false;
         }
 

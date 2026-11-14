@@ -52,3 +52,23 @@ it('rejects tampered magic links with redirect and error message', function () {
 
     expect(Auth::check())->toBeFalse();
 });
+
+it('rejects replayed magic links on second attempt (single-use consumption)', function () {
+    $user = User::factory()->create();
+
+    $signedUrlService = app(SignedUrlService::class);
+    $loginUrl = $signedUrlService->generateMagicLoginLink($user);
+
+    // First attempt: succeeds
+    $response1 = $this->get($loginUrl);
+    $response1->assertRedirect(route('orders.index'));
+    expect(Auth::id())->toBe($user->id);
+
+    // Logout and attempt to replay identical URL
+    Auth::logout();
+
+    $response2 = $this->get($loginUrl);
+    $response2->assertRedirect(route('login'));
+    expect(session('error'))->toContain('already been used')
+        ->and(Auth::check())->toBeFalse();
+});

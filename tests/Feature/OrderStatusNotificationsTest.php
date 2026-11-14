@@ -1,6 +1,5 @@
 <?php
 
-use App\Mail\OrderInvoice;
 use App\Mail\OrderStatusUpdate;
 use App\Models\Order;
 use App\Models\User;
@@ -70,6 +69,51 @@ it('rejects forged webhook notifications with invalid signature', function () {
         'status_code' => '200',
         'gross_amount' => 50000,
         'signature_key' => 'invalid-signature-hash',
+    ]);
+
+    $response->assertStatus(400);
+    expect($order->fresh()->status)->toBe('pending');
+});
+
+it('rejects forged webhook notifications when signature parameters are omitted', function () {
+    config(['services.midtrans.server_key' => 'secret-server-key']);
+
+    $user = User::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'pending',
+        'total_amount' => 50000,
+    ]);
+
+    $response = $this->postJson('/webhooks/midtrans', [
+        'order_id' => $order->id,
+        'transaction_status' => 'capture',
+    ]);
+
+    $response->assertUnprocessable();
+    expect($order->fresh()->status)->toBe('pending');
+});
+
+it('rejects webhook notifications when gross amount mismatches order total', function () {
+    config(['services.midtrans.server_key' => 'secret-server-key']);
+
+    $user = User::factory()->create();
+    $order = Order::factory()->create([
+        'user_id' => $user->id,
+        'status' => 'pending',
+        'total_amount' => 50000,
+    ]);
+
+    $statusCode = '200';
+    $tamperedAmount = 1000;
+    $signature = hash('sha512', $order->id.$statusCode.$tamperedAmount.'secret-server-key');
+
+    $response = $this->postJson('/webhooks/midtrans', [
+        'order_id' => $order->id,
+        'transaction_status' => 'settlement',
+        'status_code' => $statusCode,
+        'gross_amount' => $tamperedAmount,
+        'signature_key' => $signature,
     ]);
 
     $response->assertStatus(400);

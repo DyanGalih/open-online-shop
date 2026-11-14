@@ -13,6 +13,7 @@ class ProductService
     public function createProduct(ProductStoreData $data, ?UploadedFile $file): Product
     {
         $payload = $data->toArray();
+        unset($payload['digital_file'], $payload['digitalFile']);
         $payload['slug'] = Str::slug($data->name).'-'.Str::random(5);
 
         if ($file) {
@@ -25,6 +26,7 @@ class ProductService
     public function updateProduct(Product $product, ProductUpdateData $data, ?UploadedFile $file): Product
     {
         $payload = $data->toArray();
+        unset($payload['digital_file'], $payload['digitalFile']);
 
         if ($data->name !== $product->name) {
             $payload['slug'] = Str::slug($data->name).'-'.Str::random(5);

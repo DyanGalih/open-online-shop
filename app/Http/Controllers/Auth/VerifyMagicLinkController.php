@@ -8,6 +8,7 @@ use App\Services\SignedUrlService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 
 class VerifyMagicLinkController extends Controller
 {
@@ -15,6 +16,18 @@ class VerifyMagicLinkController extends Controller
     {
         if (! $signedUrlService->verifySignature($request)) {
             return redirect()->route('login')->with('error', 'This sign-in link is invalid or has expired. Please request a new one.');
+        }
+
+        $token = $request->query('token');
+        if (! $token) {
+            return redirect()->route('login')->with('error', 'This sign-in link is invalid or has expired. Please request a new one.');
+        }
+
+        $tokenHash = hash('sha256', $token);
+        $cachedUserId = Cache::pull("magic-link:token:{$tokenHash}");
+
+        if (! $cachedUserId || (string) $cachedUserId !== (string) $signer) {
+            return redirect()->route('login')->with('error', 'This sign-in link has already been used or has expired. Please request a new one.');
         }
 
         $user = User::findOrFail($signer);
