@@ -7,13 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Services\ProductService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 class ProductUpdateController extends Controller
 {
-    public function __invoke(Product $product, ProductUpdateData $data, Request $request, ProductService $productService): RedirectResponse
+    public function __invoke(Product $product, ProductUpdateData $data, ProductService $productService): RedirectResponse
     {
-        $productService->updateProduct($product, $data, $request->file('digital_file'));
+        $productService->updateProduct($product, $data, $data->digitalFile);
 
         return redirect()->route('admin.products.index')->with('success', 'Product updated.');
     }
