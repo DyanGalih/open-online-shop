@@ -24,6 +24,7 @@ class AdminUserSeeder extends Seeder
             'email' => $email,
             'password' => Hash::make($password),
         ]);
+        $user->forceFill(['is_admin' => true])->save();
 
         $teamName = 'Admin Team '.Str::upper(Str::random(3));
         $teamSlug = Str::slug($teamName);

@@ -21,7 +21,7 @@ class MidtransNotificationData extends Data
         public string $statusCode,
 
         #[Required]
-        public int $grossAmount,
+        public string $grossAmount,
 
         #[Required]
         public string $signatureKey,

@@ -24,7 +24,9 @@ class VerifyMagicLinkController extends Controller
         }
 
         $tokenHash = hash('sha256', $token);
-        $cachedUserId = Cache::pull("magic-link:token:{$tokenHash}");
+        $cachedUserId = Cache::lock("magic-link:consume:{$tokenHash}", 10)->block(5, function () use ($tokenHash) {
+            return Cache::pull("magic-link:token:{$tokenHash}");
+        });
 
         if (! $cachedUserId || (string) $cachedUserId !== (string) $signer) {
             return redirect()->route('login')->with('error', 'This sign-in link has already been used or has expired. Please request a new one.');

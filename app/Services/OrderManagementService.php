@@ -37,7 +37,7 @@ class OrderManagementService
         Mail::to($order->user->email)->queue(new OrderStatusUpdate($order, 'delivered'));
     }
 
-    public function processWebhookPayment(string $orderId, string $status, ?int $grossAmount = null, ?string $signatureKey = null, ?string $statusCode = null): bool
+    public function processWebhookPayment(string $orderId, string $status, string|int|null $grossAmount = null, ?string $signatureKey = null, ?string $statusCode = null): bool
     {
         $serverKey = config('services.midtrans.server_key');
         if (! $serverKey || ! $signatureKey || ! $statusCode || $grossAmount === null) {
@@ -54,7 +54,7 @@ class OrderManagementService
             return false;
         }
 
-        if ((int) $grossAmount !== (int) $order->total_amount) {
+        if ((int) round((float) $grossAmount) !== (int) $order->total_amount) {
             return false;
         }
 

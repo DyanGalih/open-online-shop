@@ -24,7 +24,20 @@ it('denies authenticated user access to another user order via policy', function
 
     $order = Order::factory()->create([
         'user_id' => $owner->id,
+        'status' => 'paid',
     ]);
+
+    OrderItem::create([
+        'order_id' => $order->id,
+        'product_id' => $product->id,
+        'product_name' => $product->name,
+        'price' => $product->price,
+        'quantity' => 1,
+    ]);
+
+    Storage::fake('private');
+    Storage::disk('private')->put('digital_products/sample.pdf', 'dummy content');
+    $product->update(['file_path' => 'digital_products/sample.pdf']);
 
     $this->actingAs($otherUser)
         ->get("/orders/{$order->id}")
