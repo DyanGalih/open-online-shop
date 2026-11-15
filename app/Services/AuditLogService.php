@@ -55,9 +55,18 @@ class AuditLogService
         $sanitized = [];
 
         foreach ($payload as $key => $value) {
+            $lowerKey = strtolower((string) $key);
+            $isSensitive = false;
+            foreach ($this->redactedKeys as $redactedKey) {
+                if (str_contains($lowerKey, $redactedKey)) {
+                    $isSensitive = true;
+                    break;
+                }
+            }
+
             if (is_array($value)) {
                 $sanitized[$key] = $this->redactPayload($value);
-            } elseif (in_array(strtolower((string) $key), $this->redactedKeys, true)) {
+            } elseif ($isSensitive) {
                 $sanitized[$key] = '[REDACTED]';
             } else {
                 $sanitized[$key] = $value;

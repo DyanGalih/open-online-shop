@@ -45,6 +45,20 @@ test('users without manage-settings permission cannot update store settings', fu
         ->assertForbidden();
 });
 
+test('non-admin users with only manage-settings permission can update store settings', function () {
+    $settingsUser = User::factory()->create([
+        'is_admin' => false,
+    ]);
+    $settingsUser->givePermissionTo('manage-settings');
+
+    $this->actingAs($settingsUser)
+        ->postJson('/admin/settings', [
+            'key' => 'currency',
+            'value' => 'USD',
+        ])
+        ->assertOk();
+});
+
 test('authorized users can update settings and secrets are redacted in responses and audit logs', function () {
     $adminUser = User::factory()->create([
         'is_admin' => true,

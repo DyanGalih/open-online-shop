@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\StoreSetting;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class StoreSettingsService
 {
@@ -28,28 +29,32 @@ class StoreSettingsService
      */
     public function set(string $key, ?string $value, string $group = 'general', bool $isSecret = false, ?int $userId = null): StoreSetting
     {
-        $setting = StoreSetting::updateOrCreate(
-            ['key' => $key],
-            [
-                'value' => $value,
-                'group' => $group,
-                'is_secret' => $isSecret,
-            ]
-        );
+        $setting = DB::transaction(function () use ($key, $value, $group, $isSecret, $userId) {
+            $setting = StoreSetting::updateOrCreate(
+                ['key' => $key],
+                [
+                    'value' => $value,
+                    'group' => $group,
+                    'is_secret' => $isSecret,
+                ]
+            );
+
+            $this->auditLogService->log(
+                action: 'store_setting.updated',
+                auditable: $setting,
+                payload: [
+                    'key' => $key,
+                    'group' => $group,
+                    'is_secret' => $isSecret,
+                    'value' => $isSecret ? '[REDACTED]' : $value,
+                ],
+                userId: $userId
+            );
+
+            return $setting;
+        });
 
         Cache::forget("store_setting_{$key}");
-
-        $this->auditLogService->log(
-            action: 'store_setting.updated',
-            auditable: $setting,
-            payload: [
-                'key' => $key,
-                'group' => $group,
-                'is_secret' => $isSecret,
-                'value' => $isSecret ? '[REDACTED]' : $value,
-            ],
-            userId: $userId
-        );
 
         return $setting;
     }
