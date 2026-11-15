@@ -1,0 +1,49 @@
+import { defineConfig, devices } from '@playwright/test';
+import dotenv from 'dotenv';
+import path from 'path';
+
+// Read environment variables from .env file
+dotenv.config({ path: path.resolve(__dirname, '.env') });
+
+/**
+ * Screenshot configuration mapping:
+ * - 'failures-only' -> 'only-on-failure'
+ * - 'all' -> 'on'
+ * - default / 'off' -> 'off'
+ */
+const screenshotMode = process.env.E2E_SCREENSHOTS === 'failures-only'
+  ? 'only-on-failure'
+  : process.env.E2E_SCREENSHOTS === 'all'
+    ? 'on'
+    : 'off';
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  outputDir: './test-results',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: [
+    ['list'],
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
+  ],
+  use: {
+    baseURL: process.env.APP_URL || 'http://127.0.0.1:8000',
+    trace: 'on-first-retry',
+    screenshot: screenshotMode,
+    video: 'off',
+  },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+  ],
+  webServer: {
+    command: 'npx concurrently -k -s first "php artisan serve --port=8000" "npm run dev"',
+    url: 'http://127.0.0.1:8000',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120 * 1000,
+  },
+});
