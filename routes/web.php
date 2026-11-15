@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\ProductIndexController;
 use App\Http\Controllers\Admin\ProductStoreController;
 use App\Http\Controllers\Admin\ProductUpdateController;
 use App\Http\Controllers\Admin\StockAdjustmentController;
+use App\Http\Controllers\Admin\StoreSettingsUpdateController;
 use App\Http\Controllers\Admin\VariantStoreController;
 use App\Http\Controllers\Auth\AuthLoginController;
 use App\Http\Controllers\Auth\AuthLogoutController;
@@ -134,6 +135,7 @@ Route::middleware(['auth', EnsureAdminRole::class])->prefix('admin')->name('admi
 
     Route::post('/variants', VariantStoreController::class)->name('variants.store');
     Route::post('/inventory/adjust', StockAdjustmentController::class)->name('inventory.adjust');
+    Route::post('/settings', StoreSettingsUpdateController::class)->name('settings.update');
 });
 
 require __DIR__.'/settings.php';
