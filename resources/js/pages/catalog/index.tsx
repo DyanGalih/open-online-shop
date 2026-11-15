@@ -1,7 +1,6 @@
 import { router } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { FilterDrawer } from '@/components/storefront/filter-drawer';
 
 interface Product {
@@ -103,7 +102,7 @@ export default function CatalogIndex({ products, categories, filters }: Props) {
                                     <Button
                                         className="w-full"
                                         onClick={() => {
-                                            router.post(`/cart/add?product_id=${product.id}&quantity=1`);
+                                            router.post('/cart/add', { product_id: product.id, quantity: 1 });
                                         }}
                                     >
                                         Add to Cart

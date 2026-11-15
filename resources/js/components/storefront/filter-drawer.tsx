@@ -60,7 +60,7 @@ export function FilterDrawer({
     return (
         <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-                <Button variant="outline" size="sm" className="md:hidden">
+                <Button variant="outline" size="sm">
                     Filters
                 </Button>
             </SheetTrigger>

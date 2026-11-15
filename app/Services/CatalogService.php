@@ -58,7 +58,7 @@ class CatalogService
             $query->where('price', '<=', $filters->maxPrice);
         }
 
-        return $query->latest()->paginate($filters->perPage);
+        return $query->latest()->paginate($filters->perPage)->withQueryString();
     }
 
     /** @return Collection<int, Category> */
