@@ -35,6 +35,7 @@ use App\Http\Controllers\Orders\OrderHistoryShowController;
 use App\Http\Controllers\Orders\OrderHistoryUploadProofController;
 use App\Http\Controllers\Orders\ViewCheckoutOrderController;
 use App\Http\Controllers\Reviews\StoreReviewController;
+use App\Http\Controllers\Storefront\CatalogIndexController;
 use App\Http\Controllers\Teams\TeamInvitationAcceptController;
 use App\Http\Controllers\Teams\TeamInvitationDeclineController;
 use App\Http\Middleware\EnsureAdminRole;
@@ -45,6 +46,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', HomeController::class)->name('home');
+Route::get('/catalog', CatalogIndexController::class)->name('catalog.index');
 Route::post('/gift-box', GiftBoxStoreController::class)->name('gift-box.store');
 Route::post('/cart/add', CartAddController::class)->name('cart.add');
 Route::delete('/cart/remove/{product_id}', CartRemoveController::class)->name('cart.remove');
