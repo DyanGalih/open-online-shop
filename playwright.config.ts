@@ -43,11 +43,18 @@ export default defineConfig({
             use: { ...devices['Desktop Chrome'] },
         },
     ],
-    webServer: {
-        command:
-            'npx concurrently -k -s first "php artisan serve --port=8000" "npm run dev"',
-        url: appUrl,
-        reuseExistingServer: !process.env.CI,
-        timeout: 120 * 1000,
-    },
+    webServer: [
+        {
+            command: 'php artisan serve --port=8000',
+            url: appUrl,
+            reuseExistingServer: !process.env.CI,
+            timeout: 120 * 1000,
+        },
+        {
+            command: 'npm run dev',
+            url: 'http://127.0.0.1:5173',
+            reuseExistingServer: !process.env.CI,
+            timeout: 120 * 1000,
+        },
+    ],
 });
