@@ -19,6 +19,8 @@ class CustomerAddressService
     public function createAddress(User $user, AddressStoreData $data): Address
     {
         return DB::transaction(function () use ($user, $data) {
+            User::where('id', $user->id)->lockForUpdate()->first();
+
             if ($data->isDefault) {
                 Address::where('user_id', $user->id)->update(['is_default' => false]);
             }
