@@ -13,6 +13,8 @@ use App\Http\Controllers\Admin\ProductDestroyController;
 use App\Http\Controllers\Admin\ProductIndexController;
 use App\Http\Controllers\Admin\ProductStoreController;
 use App\Http\Controllers\Admin\ProductUpdateController;
+use App\Http\Controllers\Admin\StockAdjustmentController;
+use App\Http\Controllers\Admin\VariantStoreController;
 use App\Http\Controllers\Auth\AuthLoginController;
 use App\Http\Controllers\Auth\AuthLogoutController;
 use App\Http\Controllers\Auth\AuthRegisterController;
@@ -127,6 +129,9 @@ Route::middleware(['auth', EnsureAdminRole::class])->prefix('admin')->name('admi
     Route::post('/products', ProductStoreController::class)->name('products.store');
     Route::put('/products/{product}', ProductUpdateController::class)->name('products.update');
     Route::delete('/products/{product}', ProductDestroyController::class)->name('products.destroy');
+
+    Route::post('/variants', VariantStoreController::class)->name('variants.store');
+    Route::post('/inventory/adjust', StockAdjustmentController::class)->name('inventory.adjust');
 });
 
 require __DIR__.'/settings.php';
