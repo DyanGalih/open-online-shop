@@ -27,3 +27,10 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Playwright test artifacts & screenshots
+/test-results/
+/playwright-report/
+/blob-report/
+/.playwright/
+
