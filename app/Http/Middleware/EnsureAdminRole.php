@@ -21,7 +21,7 @@ class EnsureAdminRole
             abort(403, 'Unauthorized. Administrative privileges required.');
         }
 
-        if ($user->isAdmin()) {
+        if ($user->isAdmin() || $user->can('view-dashboard')) {
             return $next($request);
         }
 

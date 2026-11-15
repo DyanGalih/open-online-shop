@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\ProductDestroyController;
 use App\Http\Controllers\Admin\ProductIndexController;
 use App\Http\Controllers\Admin\ProductStoreController;
 use App\Http\Controllers\Admin\ProductUpdateController;
+use App\Http\Controllers\Admin\StoreSettingsUpdateController;
 use App\Http\Controllers\Auth\AuthLoginController;
 use App\Http\Controllers\Auth\AuthLogoutController;
 use App\Http\Controllers\Auth\AuthRegisterController;
@@ -122,6 +123,8 @@ Route::middleware(['auth', EnsureAdminRole::class])->prefix('admin')->name('admi
     Route::post('/products', ProductStoreController::class)->name('products.store');
     Route::put('/products/{product}', ProductUpdateController::class)->name('products.update');
     Route::delete('/products/{product}', ProductDestroyController::class)->name('products.destroy');
+
+    Route::post('/settings', StoreSettingsUpdateController::class)->name('settings.update');
 });
 
 require __DIR__.'/settings.php';
