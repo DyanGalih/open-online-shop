@@ -1,9 +1,10 @@
-import { Page, expect } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import { gotoPage } from './navigation';
 
 export interface TestUserCredentials {
-  email: string;
-  password?: string;
+    email: string;
+    password?: string;
 }
 
 /**
@@ -13,21 +14,36 @@ export interface TestUserCredentials {
  * @param credentials User email and password
  */
 export async function loginAsUser(
-  page: Page,
-  credentials: TestUserCredentials = { email: 'admin@example.com', password: 'password' }
+    page: Page,
+    credentials: TestUserCredentials = {
+        email: 'admin@example.com',
+        password: 'password',
+    }
 ): Promise<void> {
-  await gotoPage(page, '/login');
+    await gotoPage(page, '/login');
 
-  await page.fill('input[type="email"], input[name="email"]', credentials.email);
-  await page.fill('input[type="password"], input[name="password"]', credentials.password || 'password');
+    await page.fill(
+        'input[type="email"], input[name="email"]',
+        credentials.email
+    );
+    await page.fill(
+        'input[type="password"], input[name="password"]',
+        credentials.password || 'password'
+    );
 
-  await Promise.all([
-    page.waitForURL((url) => !url.pathname.includes('/login'), { timeout: 10000 }),
-    page.click('button[type="submit"]'),
-  ]);
+    await Promise.all([
+        page.waitForURL(
+            (url) =>
+                !url.pathname.includes('/login') &&
+                !url.pathname.includes('/two-factor-challenge'),
+            { timeout: 10000 }
+        ),
+        page.click('button[type="submit"]'),
+    ]);
 
-  // Verify session is active by ensuring we are no longer on login page
-  expect(page.url()).not.toContain('/login');
+    // Verify session is active and not stopped at login or 2FA challenge
+    expect(page.url()).not.toContain('/login');
+    expect(page.url()).not.toContain('/two-factor-challenge');
 }
 
 /**
@@ -36,11 +52,18 @@ export async function loginAsUser(
  * @param page The Playwright Page instance
  */
 export async function logoutUser(page: Page): Promise<void> {
-  const logoutButton = page.locator('button:has-text("Log Out"), form[action*="logout"] button');
-  if (await logoutButton.isVisible()) {
-    await Promise.all([
-      page.waitForURL((url) => url.pathname.includes('/login') || url.pathname === '/', { timeout: 10000 }),
-      logoutButton.click(),
-    ]);
-  }
+    const logoutButton = page.locator(
+        'button:has-text("Log Out"), form[action*="logout"] button'
+    );
+
+    if (await logoutButton.isVisible()) {
+        await Promise.all([
+            page.waitForURL(
+                (url) =>
+                    url.pathname.includes('/login') || url.pathname === '/',
+                { timeout: 10000 }
+            ),
+            logoutButton.click(),
+        ]);
+    }
 }
