@@ -25,10 +25,13 @@ function getFirstProduct(): ProductInfo {
 /**
  * Generate a valid temporary signed checkout view link for an order.
  */
-function createSignedOrderUrl(): string {
+function createSignedOrderUrl(
+    origin: string = process.env.E2E_BASE_URL || 'http://127.0.0.1:8000',
+): string {
+    const rootOrigin = new URL(origin).origin;
     const rawUrl = execSync(
         'php artisan tinker --execute="' +
-            'URL::forceRootUrl(\'http://127.0.0.1:8000\'); ' +
+            `URL::forceRootUrl('${rootOrigin}'); ` +
             '\\$u = App\\\\Models\\\\User::first(); ' +
             '\\$p = App\\\\Models\\\\Product::first(); ' +
             '\\$order = App\\\\Models\\\\Order::create([' +
@@ -102,9 +105,14 @@ test.describe('E2E Checkout Suite', () => {
         await expect(page.locator('text=Qty: 2')).toBeVisible();
 
         // Verify total amount is calculated
+        const expectedTotal = new Intl.NumberFormat('en-US', {
+            style: 'currency',
+            currency: 'USD',
+        }).format(productInfo.price * 2);
+
         await expect(
             page.locator('text=Total Amount:').locator('..'),
-        ).toBeVisible();
+        ).toContainText(expectedTotal);
 
         await captureStepScreenshot(page, 'checkout-order-summary');
     });
@@ -123,12 +131,29 @@ test.describe('E2E Checkout Suite', () => {
 
         await gotoPage(page, '/checkout');
 
+        let checkoutRequestSent = false;
+        page.on('request', (request) => {
+            if (
+                request.url().includes('/checkout') &&
+                request.method() === 'POST'
+            ) {
+                checkoutRequestSent = true;
+            }
+        });
+
         const submitBtn = page.getByRole('button', { name: 'Place Order' });
 
         // Try submitting empty form
         await submitBtn.click();
 
-        // HTML5 required validation prevents navigation away from /checkout
+        // HTML5 required validation marks required inputs invalid and prevents navigation/request
+        const nameInput = page.locator('input[type="text"]');
+        expect(
+            await nameInput.evaluate(
+                (el: HTMLInputElement) => el.checkValidity(),
+            ),
+        ).toBe(false);
+        expect(checkoutRequestSent).toBe(false);
         await expect(page).toHaveURL('/checkout');
 
         await captureStepScreenshot(page, 'checkout-validation-error');
@@ -229,10 +254,20 @@ test.describe('E2E Checkout Suite', () => {
 
     test('single-use signed order confirmation view renders and enforces one-time access', async ({
         page,
+        baseURL,
     }) => {
-        const signedRelativeUrl = createSignedOrderUrl();
+        const rootOrigin = baseURL
+            ? new URL(baseURL).origin
+            : process.env.E2E_BASE_URL || 'http://127.0.0.1:8000';
+        const signedRelativeUrl = createSignedOrderUrl(rootOrigin);
 
-        // 1. First visit with valid signature -> 200 OK
+        // 1. Visit with invalid/tampered signature first -> 403 Forbidden
+        // (Verifies signature verification independently before the single-use token is consumed)
+        const tamperedUrl = `${signedRelativeUrl}&tampered=true`;
+        const tamperedResponse = await page.goto(tamperedUrl);
+        expect(tamperedResponse?.status()).toBe(403);
+
+        // 2. First visit with valid signature -> 200 OK
         const response = await page.goto(signedRelativeUrl);
         expect(response?.status()).toBe(200);
 
@@ -246,13 +281,8 @@ test.describe('E2E Checkout Suite', () => {
 
         await captureStepScreenshot(page, 'checkout-signed-view-first-access');
 
-        // 2. Second visit to consumed link -> 403 Forbidden
+        // 3. Second visit to consumed link -> 403 Forbidden
         const secondResponse = await page.goto(signedRelativeUrl);
         expect(secondResponse?.status()).toBe(403);
-
-        // 3. Visit with invalid/tampered signature -> 403 Forbidden
-        const tamperedUrl = `${signedRelativeUrl}&tampered=true`;
-        const tamperedResponse = await page.goto(tamperedUrl);
-        expect(tamperedResponse?.status()).toBe(403);
     });
 });

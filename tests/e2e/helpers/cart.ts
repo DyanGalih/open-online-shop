@@ -27,7 +27,7 @@ export async function seedCart(
                 ) as HTMLMetaElement
             )?.content ?? '';
 
-        await fetch('/cart/sync', {
+        const response = await fetch('/cart/sync', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -41,6 +41,10 @@ export async function seedCart(
                 })),
             }),
         });
+
+        if (!response.ok) {
+            throw new Error(`Cart sync failed with status ${response.status}`);
+        }
     }, items);
 }
 
@@ -60,7 +64,7 @@ export async function clearCart(page: Page): Promise<void> {
                 ) as HTMLMetaElement
             )?.content ?? '';
 
-        await fetch('/cart/sync', {
+        const response = await fetch('/cart/sync', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -69,5 +73,9 @@ export async function clearCart(page: Page): Promise<void> {
             },
             body: JSON.stringify({ items: [] }),
         });
+
+        if (!response.ok) {
+            throw new Error(`Cart clear sync failed with status ${response.status}`);
+        }
     });
 }
