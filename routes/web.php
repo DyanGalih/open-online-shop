@@ -25,6 +25,8 @@ use App\Http\Controllers\Cart\CartRemoveController;
 use App\Http\Controllers\Cart\CartSyncController;
 use App\Http\Controllers\Checkout\CheckoutIndexController;
 use App\Http\Controllers\Checkout\CheckoutProcessController;
+use App\Http\Controllers\Customer\AddressDestroyController;
+use App\Http\Controllers\Customer\AddressStoreController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Home\GiftBoxStoreController;
 use App\Http\Controllers\Home\HomeController;
@@ -99,6 +101,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/orders/{order}', OrderHistoryShowController::class)->name('orders.show');
     Route::post('/orders/{order}/payment-proof', OrderHistoryUploadProofController::class)->name('orders.payment-proof');
     Route::get('/orders/{order}/download/{product}', DownloadController::class)->name('orders.download');
+
+    Route::post('/addresses', AddressStoreController::class)->name('addresses.store');
+    Route::delete('/addresses/{address}', AddressDestroyController::class)->name('addresses.destroy');
 
     Route::post('/products/{id}/reviews', StoreReviewController::class)->name('products.reviews.store');
     Route::get('invitations/{invitation}/accept', TeamInvitationAcceptController::class)->name('invitations.accept');
