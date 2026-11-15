@@ -13,6 +13,9 @@ use App\Http\Controllers\Admin\ProductDestroyController;
 use App\Http\Controllers\Admin\ProductIndexController;
 use App\Http\Controllers\Admin\ProductStoreController;
 use App\Http\Controllers\Admin\ProductUpdateController;
+use App\Http\Controllers\Admin\StockAdjustmentController;
+use App\Http\Controllers\Admin\StoreSettingsUpdateController;
+use App\Http\Controllers\Admin\VariantStoreController;
 use App\Http\Controllers\Auth\AuthLoginController;
 use App\Http\Controllers\Auth\AuthLogoutController;
 use App\Http\Controllers\Auth\AuthRegisterController;
@@ -25,6 +28,8 @@ use App\Http\Controllers\Cart\CartRemoveController;
 use App\Http\Controllers\Cart\CartSyncController;
 use App\Http\Controllers\Checkout\CheckoutIndexController;
 use App\Http\Controllers\Checkout\CheckoutProcessController;
+use App\Http\Controllers\Customer\AddressDestroyController;
+use App\Http\Controllers\Customer\AddressStoreController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Home\GiftBoxStoreController;
 use App\Http\Controllers\Home\HomeController;
@@ -35,6 +40,7 @@ use App\Http\Controllers\Orders\OrderHistoryShowController;
 use App\Http\Controllers\Orders\OrderHistoryUploadProofController;
 use App\Http\Controllers\Orders\ViewCheckoutOrderController;
 use App\Http\Controllers\Reviews\StoreReviewController;
+use App\Http\Controllers\Storefront\CatalogIndexController;
 use App\Http\Controllers\Teams\TeamInvitationAcceptController;
 use App\Http\Controllers\Teams\TeamInvitationDeclineController;
 use App\Http\Middleware\EnsureAdminRole;
@@ -45,6 +51,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', HomeController::class)->name('home');
+Route::get('/catalog', CatalogIndexController::class)->name('catalog.index');
 Route::post('/gift-box', GiftBoxStoreController::class)->name('gift-box.store');
 Route::post('/cart/add', CartAddController::class)->name('cart.add');
 Route::delete('/cart/remove/{product_id}', CartRemoveController::class)->name('cart.remove');
@@ -100,6 +107,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/orders/{order}/payment-proof', OrderHistoryUploadProofController::class)->name('orders.payment-proof');
     Route::get('/orders/{order}/download/{product}', DownloadController::class)->name('orders.download');
 
+    Route::post('/addresses', AddressStoreController::class)->name('addresses.store');
+    Route::delete('/addresses/{address}', AddressDestroyController::class)->name('addresses.destroy');
+
     Route::post('/products/{id}/reviews', StoreReviewController::class)->name('products.reviews.store');
     Route::get('invitations/{invitation}/accept', TeamInvitationAcceptController::class)->name('invitations.accept');
     Route::delete('invitations/{invitation}', TeamInvitationDeclineController::class)->name('invitations.decline');
@@ -122,6 +132,10 @@ Route::middleware(['auth', EnsureAdminRole::class])->prefix('admin')->name('admi
     Route::post('/products', ProductStoreController::class)->name('products.store');
     Route::put('/products/{product}', ProductUpdateController::class)->name('products.update');
     Route::delete('/products/{product}', ProductDestroyController::class)->name('products.destroy');
+
+    Route::post('/variants', VariantStoreController::class)->name('variants.store');
+    Route::post('/inventory/adjust', StockAdjustmentController::class)->name('inventory.adjust');
+    Route::post('/settings', StoreSettingsUpdateController::class)->name('settings.update');
 });
 
 require __DIR__.'/settings.php';

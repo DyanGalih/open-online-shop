@@ -12,7 +12,7 @@ use Spatie\LaravelData\Mappers\CamelCaseMapper;
 class CheckoutOrderViewData extends Data
 {
     /**
-     * @param DataCollection<int, CartItemDetailsData> $items
+     * @param  DataCollection<int, CartItemDetailsData>  $items
      */
     public function __construct(
         public string $id,
