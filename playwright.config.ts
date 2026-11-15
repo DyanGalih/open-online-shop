@@ -51,10 +51,13 @@ export default defineConfig({
             timeout: 120 * 1000,
         },
         {
-            command: 'npm run dev',
-            url: 'http://127.0.0.1:5173',
+            command: 'npm run dev -- --host 127.0.0.1',
+            url: 'http://127.0.0.1:5173/@vite/client',
             reuseExistingServer: !process.env.CI,
             timeout: 120 * 1000,
+            env: {
+                LARAVEL_BYPASS_ENV_CHECK: '1',
+            },
         },
     ],
 });
