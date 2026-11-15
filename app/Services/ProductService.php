@@ -41,13 +41,19 @@ class ProductService
 
     public function addVariant(Product $product, VariantStoreData $data): ProductVariant
     {
-        return $product->variants()->create([
-            'sku' => $data->sku,
-            'name' => $data->name,
-            'price' => $data->price,
-            'stock' => $data->stock,
-            'is_default' => $data->isDefault,
-        ]);
+        return DB::transaction(function () use ($product, $data) {
+            if ($data->isDefault) {
+                $product->variants()->update(['is_default' => false]);
+            }
+
+            return $product->variants()->create([
+                'sku' => $data->sku,
+                'name' => $data->name,
+                'price' => $data->price,
+                'stock' => $data->stock,
+                'is_default' => $data->isDefault,
+            ]);
+        });
     }
 
     public function updateProduct(Product $product, ProductUpdateData $data, ?UploadedFile $file): Product

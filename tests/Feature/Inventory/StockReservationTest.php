@@ -49,7 +49,10 @@ it('releases reserved stock idempotently and increments balance', function () {
     $this->inventoryService->releaseReservation($this->variant->id, 4, null, 'Order cancelled');
     expect($this->variant->fresh()->stock)->toBe(10);
 
-    $releaseMovement = StockMovement::where('product_variant_id', $this->variant->id)->latest()->first();
+    $releaseMovement = StockMovement::where('product_variant_id', $this->variant->id)
+        ->where('type', 'reservation_release')
+        ->latest('id')
+        ->first();
     expect($releaseMovement->quantity_delta)->toBe(4)
         ->and($releaseMovement->type)->toBe('reservation_release')
         ->and($releaseMovement->reason)->toBe('Order cancelled');
