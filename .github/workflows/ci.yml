@@ -47,5 +47,8 @@ jobs:
       - name: Generate App Key
         run: php artisan key:generate
 
-      - name: Run CI Suite (Pint, Larastan, Pest, Frontend Checks)
-        run: composer ci:check
+      - name: Build Frontend Assets
+        run: npm run build
+
+      - name: Run Backend CI Suite (Pint, Larastan, Pest)
+        run: composer test

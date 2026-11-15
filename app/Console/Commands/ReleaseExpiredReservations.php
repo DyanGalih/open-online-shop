@@ -31,6 +31,12 @@ class ReleaseExpiredReservations extends Command
     public function handle(): int
     {
         $hours = (int) $this->option('hours');
+        if ($hours <= 0) {
+            $this->error('The --hours option must be a positive integer greater than zero.');
+
+            return Command::FAILURE;
+        }
+
         $cutoff = Carbon::now()->subHours($hours);
 
         $expiredOrders = Order::where('status', 'pending')
@@ -48,14 +54,20 @@ class ReleaseExpiredReservations extends Command
 
         foreach ($expiredOrders as $order) {
             DB::transaction(function () use ($order, &$releasedCount) {
-                foreach ($order->items as $item) {
+                /** @var Order|null $lockedOrder */
+                $lockedOrder = Order::where('id', $order->id)->lockForUpdate()->first();
+                if (! $lockedOrder || $lockedOrder->status !== 'pending') {
+                    return;
+                }
+
+                foreach ($lockedOrder->items as $item) {
                     Product::where('id', $item->product_id)->increment('stock', $item->quantity);
                 }
 
-                $order->update(['status' => 'cancelled']);
+                $lockedOrder->update(['status' => 'cancelled']);
                 $releasedCount++;
 
-                Log::info("Released expired reservation for order {$order->id}");
+                Log::info("Released expired reservation for order {$lockedOrder->id}");
             });
         }
 

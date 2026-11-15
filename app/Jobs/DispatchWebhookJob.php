@@ -16,7 +16,8 @@ class DispatchWebhookJob implements ShouldQueue
 
     public int $tries = 3;
 
-    public int $backoff = 30;
+    /** @var array<int, int> */
+    public array $backoff = [30, 120, 300];
 
     /**
      * Create a new job instance.
@@ -39,10 +40,10 @@ class DispatchWebhookJob implements ShouldQueue
 
         $response = Http::timeout(10)
             ->withHeaders([
-                'Content-Type' => 'application/json',
                 'X-Webhook-Signature' => $signature,
             ])
-            ->post($this->endpointUrl, $this->payload);
+            ->withBody($jsonPayload, 'application/json')
+            ->post($this->endpointUrl);
 
         if ($response->failed()) {
             Log::warning("Webhook delivery failed for {$this->endpointUrl}", [
