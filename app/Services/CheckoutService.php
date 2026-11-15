@@ -12,6 +12,7 @@ use App\Models\Product;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Spatie\LaravelData\DataCollection;
 
 class CheckoutService
@@ -76,7 +77,7 @@ class CheckoutService
             $order = Order::create([
                 'user_id' => $user->id,
                 'status' => 'pending',
-                'session_key' => \Illuminate\Support\Str::random(40),
+                'session_key' => Str::random(40),
                 'payment_due_at' => now()->addHour(),
                 'payment_method' => $data->paymentMethod,
                 'shipping_address' => $data->shippingAddress,

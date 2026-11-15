@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\Category;
+use App\Models\Product;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -22,9 +24,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        $categories = \App\Models\Category::factory(5)->create();
+        $categories = Category::factory(5)->create();
         foreach ($categories as $category) {
-            \App\Models\Product::factory(random_int(10, 20))->create([
+            Product::factory(random_int(10, 20))->create([
                 'category_id' => $category->id,
             ]);
         }

@@ -9,7 +9,6 @@ use App\Services\CheckoutService;
 use App\Services\SignedUrlService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\URL;
 
 it('creates guest checkout order and queues signed confirmation email without auto-logging in existing user (ATO prevention)', function () {
     Mail::fake();
