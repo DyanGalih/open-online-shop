@@ -13,10 +13,14 @@ test.describe('E2E Public Pages (Home & Storefront)', () => {
         page,
     }) => {
         const consoleErrors: string[] = [];
+        const pageErrors: Error[] = [];
         page.on('console', (msg) => {
             if (msg.type() === 'error') {
                 consoleErrors.push(msg.text());
             }
+        });
+        page.on('pageerror', (err) => {
+            pageErrors.push(err);
         });
 
         await gotoPage(page, '/');
@@ -53,6 +57,7 @@ test.describe('E2E Public Pages (Home & Storefront)', () => {
 
         await captureStepScreenshot(page, 'home-hero-showcase');
         expect(consoleErrors).toHaveLength(0);
+        expect(pageErrors).toHaveLength(0);
     });
 
     test('product catalog displays products and allows category filtering', async ({
@@ -93,14 +98,26 @@ test.describe('E2E Public Pages (Home & Storefront)', () => {
 
         await secondCategoryBtn.click();
 
-        // Verify active category styling or filtered products count
+        // Verify active category styling and filtered catalog content
         await expect(secondCategoryBtn).toHaveClass(/border-primary/);
+        await expect(
+            page.getByText(
+                new RegExp(`Showing ${categoryName} Collection`, 'i'),
+            ),
+        ).toBeVisible();
+
+        const filteredCount = await productCards.count();
+        expect(filteredCount).toBeGreaterThan(0);
+        expect(filteredCount).toBeLessThan(initialCount);
 
         await captureStepScreenshot(page, 'home-category-filter');
 
         // Reset filter by clicking All Products
         await allProductsBtn.click();
         await expect(allProductsBtn).toHaveClass(/border-primary/);
+        await expect(
+            page.getByText(/Showing All Collection/i),
+        ).toBeVisible();
         await expect(productCards).toHaveCount(initialCount);
     });
 
