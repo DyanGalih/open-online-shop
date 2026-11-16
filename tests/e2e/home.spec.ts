@@ -80,11 +80,18 @@ test.describe('E2E Public Pages (Home & Storefront)', () => {
         });
         await expect(allProductsBtn).toBeVisible();
 
-        // Verify product cards are displayed
-        const productCards = page.locator('#catalog .grid > div');
+        // Verify product cards are displayed (excluding any empty-state message containers)
+        const productCards = page
+            .locator('#catalog .grid > div')
+            .filter({ has: page.getByRole('heading') });
         await expect(productCards.first()).toBeVisible();
         const initialCount = await productCards.count();
         expect(initialCount).toBeGreaterThan(0);
+
+        // Capture initial product titles
+        const initialProductTitles = await productCards
+            .locator('h3 a')
+            .allTextContents();
 
         // Filter by the first specific category card
         const categoryButtons = page.locator(
@@ -110,6 +117,16 @@ test.describe('E2E Public Pages (Home & Storefront)', () => {
         expect(filteredCount).toBeGreaterThan(0);
         expect(filteredCount).toBeLessThan(initialCount);
 
+        // Verify that displayed products changed and products outside selected category are filtered out
+        const filteredProductTitles = await productCards
+            .locator('h3 a')
+            .allTextContents();
+        const removedTitles = initialProductTitles.filter(
+            (title) => !filteredProductTitles.includes(title),
+        );
+        expect(removedTitles.length).toBeGreaterThan(0);
+        expect(filteredProductTitles.length).toBe(filteredCount);
+
         await captureStepScreenshot(page, 'home-category-filter');
 
         // Reset filter by clicking All Products
@@ -119,6 +136,11 @@ test.describe('E2E Public Pages (Home & Storefront)', () => {
             page.getByText(/Showing All Collection/i),
         ).toBeVisible();
         await expect(productCards).toHaveCount(initialCount);
+
+        const restoredTitles = await productCards
+            .locator('h3 a')
+            .allTextContents();
+        expect(restoredTitles).toEqual(initialProductTitles);
     });
 
     test('interactive header utilities open search modal and cart drawer', async ({

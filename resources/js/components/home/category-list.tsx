@@ -3,8 +3,8 @@ import type { Category } from '@/types/home-page';
 
 interface CategoryListProps {
     categories: Category[];
-    selectedCategoryId: number | null;
-    onSelectCategory: (id: number | null) => void;
+    selectedCategoryId: string | null;
+    onSelectCategory: (id: string | null) => void;
 }
 
 export default function CategoryList({
