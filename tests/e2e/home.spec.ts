@@ -3,10 +3,9 @@ import { gotoPage } from './helpers/navigation';
 import { captureStepScreenshot } from './helpers/screenshot';
 
 test.describe('E2E Public Pages (Home & Storefront)', () => {
-    test.beforeEach(async ({ page }) => {
-        // Clear local storage and cookies before each test
-        await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+    test.beforeEach(async ({ context }) => {
+        // Clear cookies before each test
+        await context.clearCookies();
     });
 
     test('home page renders hero section and announcement bar without console errors', async ({

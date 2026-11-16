@@ -45,7 +45,7 @@ export default defineConfig({
     ],
     webServer: [
         {
-            command: 'php artisan serve --port=8000',
+            command: 'PHP_CLI_SERVER_WORKERS=4 php artisan serve --port=8000',
             url: appUrl,
             reuseExistingServer: !process.env.CI,
             timeout: 120 * 1000,
@@ -57,6 +57,7 @@ export default defineConfig({
             timeout: 120 * 1000,
             env: {
                 LARAVEL_BYPASS_ENV_CHECK: '1',
+                NODE_OPTIONS: '--max-old-space-size=4096',
             },
         },
     ],

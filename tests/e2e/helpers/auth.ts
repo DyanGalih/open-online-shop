@@ -22,12 +22,9 @@ export async function loginAsUser(
 ): Promise<void> {
     await gotoPage(page, '/login');
 
+    await page.fill('input#email, input[name="email"]', credentials.email);
     await page.fill(
-        'input[type="email"], input[name="email"]',
-        credentials.email
-    );
-    await page.fill(
-        'input[type="password"], input[name="password"]',
+        'input#password, input[name="password"]',
         credentials.password || 'password'
     );
 
@@ -38,7 +35,7 @@ export async function loginAsUser(
                 !url.pathname.includes('/two-factor-challenge'),
             { timeout: 10000 }
         ),
-        page.click('button[type="submit"]'),
+        page.click('button[data-test="login-button"]'),
     ]);
 
     // Verify session is active and not stopped at login or 2FA challenge
