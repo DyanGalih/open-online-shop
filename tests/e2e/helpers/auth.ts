@@ -49,18 +49,41 @@ export async function loginAsUser(
  * @param page The Playwright Page instance
  */
 export async function logoutUser(page: Page): Promise<void> {
-    const logoutButton = page.locator(
-        'button:has-text("Log Out"), form[action*="logout"] button'
+    const directLogout = page.locator(
+        'button:has-text("Log Out"), form[action*="logout"] button, [data-test="logout-button"]'
     );
 
-    if (await logoutButton.isVisible()) {
+    if (await directLogout.isVisible()) {
         await Promise.all([
             page.waitForURL(
                 (url) =>
                     url.pathname.includes('/login') || url.pathname === '/',
                 { timeout: 10000 }
             ),
-            logoutButton.click(),
+            directLogout.click(),
+        ]);
+
+        return;
+    }
+
+    // Check if user menu trigger is present (sidebar or header dropdown)
+    const userMenuTrigger = page.locator(
+        '[data-test="sidebar-menu-button"], button:has([data-test="user-avatar"])'
+    );
+
+    if (await userMenuTrigger.isVisible()) {
+        await userMenuTrigger.click();
+
+        const dropdownLogout = page.locator('[data-test="logout-button"]');
+        await expect(dropdownLogout).toBeVisible();
+
+        await Promise.all([
+            page.waitForURL(
+                (url) =>
+                    url.pathname.includes('/login') || url.pathname === '/',
+                { timeout: 10000 }
+            ),
+            dropdownLogout.click(),
         ]);
     }
 }
