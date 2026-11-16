@@ -72,6 +72,12 @@ function setupIdentityFixtures(): IdentityFixtures {
         }
     }
 
+    if (lockFd === null) {
+        throw new Error(
+            `Timed out acquiring fixture lock ${lockFile} without cached fixtures available.`,
+        );
+    }
+
     try {
         if (fs.existsSync(cacheFile)) {
             try {
@@ -256,14 +262,22 @@ test.describe('E2E Identity & Customer Lifecycle Suite', () => {
         ).toBeVisible();
         expect(page.url()).toContain('/login');
 
-        // 2. Attempt login with existing registered email and wrong password
+        // 2. Attempt login with existing registered email and wrong password from a fresh login page
+        await gotoPage(page, '/login');
         await page.fill('input#email, input[name="email"]', fixtures.standardUserEmail);
         await page.fill(
             'input#password, input[name="password"]',
             'wrongpassword123',
         );
 
-        await page.click('button[data-test="login-button"]');
+        await Promise.all([
+            page.waitForResponse(
+                (res) =>
+                    res.url().includes('/login') &&
+                    res.request().method() === 'POST',
+            ),
+            page.click('button[data-test="login-button"]'),
+        ]);
 
         // Verify identical anti-enumeration error is displayed
         await expect(
