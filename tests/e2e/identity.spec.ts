@@ -19,6 +19,9 @@ interface IdentityFixtures {
  */
 function setupIdentityFixtures(): IdentityFixtures {
     const cacheFile = path.resolve('test-results', 'identity-fixtures.json');
+    const lockFile = path.resolve('test-results', 'identity-fixtures.lock');
+
+    fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
 
     if (fs.existsSync(cacheFile)) {
         try {
@@ -32,48 +35,107 @@ function setupIdentityFixtures(): IdentityFixtures {
         }
     }
 
-    const raw = execSync(
-        'php artisan tinker --execute="' +
-            'echo Illuminate\\\\Support\\\\Facades\\\\DB::transaction(function () { ' +
-            "    \\$ensureUser = function(\\$email, \\$name, \\$extra = []) { " +
-            "        \\$u = App\\\\Models\\\\User::where('email', \\$email)->first(); " +
-            '        if (!\\$u) { ' +
-            '            \\$u = App\\\\Models\\\\User::factory()->create(array_merge([ ' +
-            "                'email' => \\$email, " +
-            "                'name' => \\$name, " +
-            "                'password' => bcrypt('password'), " +
-            '            ], \\$extra)); ' +
-            '        } ' +
-            '        if (!\\$u->current_team_id) { ' +
-            "            \\$team = App\\\\Models\\\\Team::factory()->personal()->create(['name' => \\$name.' Team']); " +
-            "            \\$team->members()->attach(\\$u, ['role' => App\\\\Enums\\\\TeamRole::Owner->value]); " +
-            '            \\$u->switchTeam(\\$team); ' +
-            '        } ' +
-            '        return \\$u; ' +
-            '    }; ' +
-            "    \\$standard = \\$ensureUser('e2e-identity-user@example.com', 'E2E Standard User'); " +
-            "    \\$twoFactor = \\$ensureUser('e2e-2fa-user@example.com', 'E2E 2FA User', [ " +
-            "        'two_factor_secret' => encrypt('test-secret'), " +
-            "        'two_factor_confirmed_at' => now(), " +
-            "        'two_factor_recovery_codes' => encrypt(json_encode(['code-recovery-1', 'code-recovery-2'])), " +
-            '    ]); ' +
-            "    \\$unverified = \\$ensureUser('e2e-unverified-user@example.com', 'E2E Unverified User', [ " +
-            "        'email_verified_at' => null, " +
-            '    ]); ' +
-            '    return json_encode([ ' +
-            "        'standardUserEmail' => \\$standard->email, " +
-            "        'twoFactorUserEmail' => \\$twoFactor->email, " +
-            "        'unverifiedUserEmail' => \\$unverified->email, " +
-            '    ]); ' +
-            '});"',
-        { encoding: 'utf-8' },
-    ).trim();
+    // Acquire cross-worker file lock to avoid SQLite write collision on fresh DB
+    let lockFd: number | null = null;
 
-    const fixtures = JSON.parse(raw) as IdentityFixtures;
-    fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
-    fs.writeFileSync(cacheFile, JSON.stringify(fixtures, null, 2), 'utf-8');
+    for (let i = 0; i < 40; i++) {
+        try {
+            lockFd = fs.openSync(lockFile, 'wx');
+            break;
+        } catch (e: any) {
+            if (e?.code === 'EEXIST') {
+                const start = Date.now();
 
-    return fixtures;
+                while (Date.now() - start < 250) {
+                    // busy-wait polling for other worker to finish
+                }
+
+                if (fs.existsSync(cacheFile)) {
+                    try {
+                        const cached = JSON.parse(
+                            fs.readFileSync(cacheFile, 'utf-8'),
+                        );
+
+                        if (
+                            cached?.standardUserEmail &&
+                            cached?.twoFactorUserEmail
+                        ) {
+                            return cached;
+                        }
+                    } catch {
+                        // Keep waiting
+                    }
+                }
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    try {
+        if (fs.existsSync(cacheFile)) {
+            try {
+                const cached = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
+
+                if (cached?.standardUserEmail && cached?.twoFactorUserEmail) {
+                    return cached;
+                }
+            } catch {
+                // Re-establish
+            }
+        }
+
+        const raw = execSync(
+            'php artisan tinker --execute="' +
+                'echo Illuminate\\\\Support\\\\Facades\\\\DB::transaction(function () { ' +
+                "    \\$ensureUser = function(\\$email, \\$name, \\$extra = []) { " +
+                "        \\$u = App\\\\Models\\\\User::where('email', \\$email)->first(); " +
+                '        if (!\\$u) { ' +
+                '            \\$u = App\\\\Models\\\\User::factory()->create(array_merge([ ' +
+                "                'email' => \\$email, " +
+                "                'name' => \\$name, " +
+                "                'password' => bcrypt('password'), " +
+                '            ], \\$extra)); ' +
+                '        } ' +
+                '        if (!\\$u->current_team_id) { ' +
+                "            \\$team = App\\\\Models\\\\Team::where('name', \\$name.' Team')->first() ?? App\\\\Models\\\\Team::factory()->personal()->create(['name' => \\$name.' Team']); " +
+                "            \\$team->members()->syncWithoutDetaching([\\$u->id => ['role' => App\\\\Enums\\\\TeamRole::Owner->value]]); " +
+                '            \\$u->switchTeam(\\$team); ' +
+                '        } ' +
+                '        return \\$u; ' +
+                '    }; ' +
+                "    \\$standard = \\$ensureUser('e2e-identity-user@example.com', 'E2E Standard User'); " +
+                "    \\$twoFactor = \\$ensureUser('e2e-2fa-user@example.com', 'E2E 2FA User', [ " +
+                "        'two_factor_secret' => encrypt('test-secret'), " +
+                "        'two_factor_confirmed_at' => now(), " +
+                "        'two_factor_recovery_codes' => encrypt(json_encode(['code-recovery-1', 'code-recovery-2'])), " +
+                '    ]); ' +
+                "    \\$unverified = \\$ensureUser('e2e-unverified-user@example.com', 'E2E Unverified User', [ " +
+                "        'email_verified_at' => null, " +
+                '    ]); ' +
+                '    return json_encode([ ' +
+                "        'standardUserEmail' => \\$standard->email, " +
+                "        'twoFactorUserEmail' => \\$twoFactor->email, " +
+                "        'unverifiedUserEmail' => \\$unverified->email, " +
+                '    ]); ' +
+                '});"',
+            { encoding: 'utf-8' },
+        ).trim();
+
+        const fixtures = JSON.parse(raw) as IdentityFixtures;
+        fs.writeFileSync(cacheFile, JSON.stringify(fixtures, null, 2), 'utf-8');
+
+        return fixtures;
+    } finally {
+        if (lockFd !== null) {
+            try {
+                fs.closeSync(lockFd);
+                fs.unlinkSync(lockFile);
+            } catch {
+                // Ignore cleanup error
+            }
+        }
+    }
 }
 
 test.describe('E2E Identity & Customer Lifecycle Suite', () => {
@@ -125,15 +187,26 @@ test.describe('E2E Identity & Customer Lifecycle Suite', () => {
     }) => {
         await gotoPage(page, '/register');
 
-        // Test duplicate email
+        // 1. Test duplicate email rejection with matching passwords
         await page.fill('input#name', 'Duplicate User');
         await page.fill('input#email', fixtures.standardUserEmail);
-        await page.fill('input#password', 'password');
-        await page.fill('input#password_confirmation', 'differentPassword123');
+        await page.fill('input#password', 'securePassword123!');
+        await page.fill('input#password_confirmation', 'securePassword123!');
 
         await page.click('button[data-test="register-user-button"]');
 
-        // Verify validation error messages are displayed and user stays on /register
+        expect(page.url()).toContain('/register');
+        await expect(
+            page.locator('text=The email has already been taken.'),
+        ).toBeVisible();
+
+        // 2. Test mismatched password confirmation with unique email
+        await page.fill('input#email', `unique-${Date.now()}@example.com`);
+        await page.fill('input#password', 'securePassword123!');
+        await page.fill('input#password_confirmation', 'differentPassword123!');
+
+        await page.click('button[data-test="register-user-button"]');
+
         expect(page.url()).toContain('/register');
         await expect(
             page.locator('text=The password field confirmation does not match.'),
@@ -166,6 +239,7 @@ test.describe('E2E Identity & Customer Lifecycle Suite', () => {
     }) => {
         await gotoPage(page, '/login');
 
+        // 1. Attempt login with non-existent email
         await page.fill('input#email, input[name="email"]', 'nonexistent@example.com');
         await page.fill(
             'input#password, input[name="password"]',
@@ -175,6 +249,23 @@ test.describe('E2E Identity & Customer Lifecycle Suite', () => {
         await page.click('button[data-test="login-button"]');
 
         // Verify generic error message without leaking account existence
+        await expect(
+            page.locator(
+                'text=The provided credentials do not match our records.',
+            ),
+        ).toBeVisible();
+        expect(page.url()).toContain('/login');
+
+        // 2. Attempt login with existing registered email and wrong password
+        await page.fill('input#email, input[name="email"]', fixtures.standardUserEmail);
+        await page.fill(
+            'input#password, input[name="password"]',
+            'wrongpassword123',
+        );
+
+        await page.click('button[data-test="login-button"]');
+
+        // Verify identical anti-enumeration error is displayed
         await expect(
             page.locator(
                 'text=The provided credentials do not match our records.',
