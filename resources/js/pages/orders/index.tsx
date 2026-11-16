@@ -80,10 +80,10 @@ export default function Index({ orders, guest_email, guest_session_key }: { orde
                                             ).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 text-xs text-muted-foreground uppercase">
-                                            {order.paymentMethod?.replace(
-                                                '_',
-                                                ' ',
-                                            )}
+                                            {(
+                                                order.payment_method ||
+                                                order.paymentMethod
+                                            )?.replace('_', ' ')}
                                         </td>
                                         <td className="px-6 py-4 font-semibold text-foreground">
                                             {formatCurrency(order.total_amount)}

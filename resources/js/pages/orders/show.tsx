@@ -201,7 +201,7 @@ export default function Show({ order, guest_email, guest_session_key }: { order:
                                             </p>
                                             <p className="mt-1 text-xs font-semibold text-foreground">
                                                 {formatCurrency(
-                                                    item.price_at_purchase,
+                                                    item.price ?? item.price_at_purchase,
                                                 )}{' '}
                                                 each
                                             </p>
@@ -217,12 +217,12 @@ export default function Show({ order, guest_email, guest_session_key }: { order:
                                         <div className="mt-4 flex flex-col items-end sm:mt-0 sm:text-right">
                                             <span className="text-sm font-semibold text-foreground">
                                                 {formatCurrency(
-                                                    item.price_at_purchase *
+                                                    (item.price ?? item.price_at_purchase) *
                                                         item.quantity,
                                                 )}
                                             </span>
                                             {order.status === 'paid' &&
-                                                item.product.isDigital && (
+                                                (item.product?.is_digital ?? item.product?.isDigital) && (
                                                     <a
                                                         href={`/orders/${order.id}/download/${item.product_id}${guest_session_key ? `?email=${guest_email}&session_key=${guest_session_key}` : ''}`}
                                                         className="mt-2 inline-flex items-center text-xs font-medium text-primary hover:underline"
@@ -248,16 +248,16 @@ export default function Show({ order, guest_email, guest_session_key }: { order:
                                 <div className="flex justify-between text-muted-foreground">
                                     <span>Payment Method:</span>
                                     <span className="font-medium text-foreground uppercase">
-                                        {order.paymentMethod?.replace('_', ' ')}
+                                        {(order.payment_method || order.paymentMethod)?.replace('_', ' ')}
                                     </span>
                                 </div>
-                                {order.shippingAddress && (
+                                {(order.shipping_address || order.shippingAddress) && (
                                     <div className="pt-2">
                                         <span className="mb-0.5 block text-muted-foreground">
                                             Shipping Address:
                                         </span>
                                         <p className="border border-border bg-slate-50 p-3 text-xs leading-relaxed text-foreground">
-                                            {order.shippingAddress}
+                                            {order.shipping_address || order.shippingAddress}
                                         </p>
                                     </div>
                                 )}
@@ -274,7 +274,7 @@ export default function Show({ order, guest_email, guest_session_key }: { order:
                     </div>
 
                     {/* Manual Transfer Flow & Proof Upload */}
-                    {order.paymentMethod === 'manual' &&
+                    {(order.payment_method || order.paymentMethod) === 'manual' &&
                         (order.status === 'pending' ||
                             order.status === 'awaiting_payment') && (
                             <div className="mt-8 border-t border-border pt-8">
