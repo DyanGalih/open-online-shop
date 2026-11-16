@@ -1,4 +1,6 @@
 import { execSync } from 'child_process';
+import fs from 'fs';
+import path from 'path';
 import { expect, test } from '@playwright/test';
 import { loginAsUser } from './helpers/auth';
 import { gotoPage } from './helpers/navigation';
@@ -15,67 +17,89 @@ interface OrderFixtures {
 /**
  * Idempotently establish test fixtures for order owner, other customer,
  * pending manual transfer order, and paid digital order.
+ * Caches fixture IDs to disk to prevent duplicate creation across parallel workers.
  */
 function setupOrderFixtures(): OrderFixtures {
+    const cacheFile = path.resolve('test-results', 'order-fixtures.json');
+
+    if (fs.existsSync(cacheFile)) {
+        try {
+            const cached = JSON.parse(fs.readFileSync(cacheFile, 'utf-8'));
+
+            if (cached?.pendingOrderId && cached?.paidOrderId) {
+                return cached;
+            }
+        } catch {
+            // Fall back to establishing fixtures via tinker
+        }
+    }
+
     const raw = execSync(
         'php artisan tinker --execute="' +
-            "\\$ensureUser = function(\\$email, \\$name) { " +
-            "    \\$u = App\\\\Models\\\\User::firstOrCreate(['email' => \\$email], ['name' => \\$name, 'password' => bcrypt('password')]); " +
-            "    if (!\\$u->current_team_id) { " +
-            "        \\$team = App\\\\Models\\\\Team::factory()->personal()->create(['name' => \\$name.' Team']); " +
-            "        \\$team->members()->attach(\\$u, ['role' => App\\\\Enums\\\\TeamRole::Owner->value]); " +
-            "        \\$u->switchTeam(\\$team); " +
-            "    } " +
-            "    return \\$u; " +
-            "}; " +
-            "\\$owner = \\$ensureUser('e2e-owner@example.com', 'E2E Owner'); " +
-            "\\$other = \\$ensureUser('e2e-other@example.com', 'E2E Other'); " +
-            '\\$prod = App\\\\Models\\\\Product::first(); ' +
-            "\\$pendingOrder = App\\\\Models\\\\Order::firstOrCreate(['session_key' => 'e2e-pending-manual-session-key'], [" +
-            "    'user_id' => \\$owner->id, " +
-            "    'status' => 'pending', " +
-            "    'payment_method' => 'manual', " +
-            "    'shipping_address' => '742 Evergreen Terrace, Springfield', " +
-            '    \'total_amount\' => \\$prod->price * 2, ' +
-            ']); ' +
-            "App\\\\Models\\\\OrderItem::firstOrCreate(['order_id' => \\$pendingOrder->id, 'product_id' => \\$prod->id], [" +
-            "    'product_name' => \\$prod->name, " +
-            '    \'price\' => \\$prod->price, ' +
-            "    'quantity' => 2, " +
-            ']); ' +
-            "Illuminate\\\\Support\\\\Facades\\\\Storage::disk('private')->put('digital_products/sample_guide.pdf', '%PDF-1.4 sample digital product content'); " +
-            "\\$digitalProd = App\\\\Models\\\\Product::firstOrCreate(['slug' => 'sample-digital-guide'], [" +
-            "    'name' => 'Sample Digital Guide', " +
-            '    \'price\' => 2500, ' +
-            '    \'category_id\' => App\\\\Models\\\\Category::first()->id, ' +
-            "    'is_digital' => true, " +
-            "    'file_path' => 'digital_products/sample_guide.pdf', " +
-            '    \'stock\' => 999, ' +
-            "    'status' => 'active', " +
-            ']); ' +
-            "\\$paidOrder = App\\\\Models\\\\Order::firstOrCreate(['session_key' => 'e2e-paid-digital-order-session-key'], [" +
-            "    'user_id' => \\$owner->id, " +
-            "    'status' => 'paid', " +
-            "    'payment_method' => 'manual', " +
-            "    'shipping_address' => '742 Evergreen Terrace, Springfield', " +
-            '    \'total_amount\' => 2500, ' +
-            ']); ' +
-            "App\\\\Models\\\\OrderItem::firstOrCreate(['order_id' => \\$paidOrder->id, 'product_id' => \\$digitalProd->id], [" +
-            "    'product_name' => \\$digitalProd->name, " +
-            '    \'price\' => 2500, ' +
-            "    'quantity' => 1, " +
-            ']); ' +
-            'echo json_encode([' +
-            "    'ownerEmail' => \\$owner->email, " +
-            "    'otherEmail' => \\$other->email, " +
-            "    'pendingOrderId' => \\$pendingOrder->id, " +
-            "    'paidOrderId' => \\$paidOrder->id, " +
-            "    'digitalProductId' => \\$digitalProd->id, " +
-            ']);"',
+            'echo Illuminate\\\\Support\\\\Facades\\\\DB::transaction(function () { ' +
+            "    \\$ensureUser = function(\\$email, \\$name) { " +
+            "        \\$u = App\\\\Models\\\\User::where('email', \\$email)->first() " +
+            "            ?? App\\\\Models\\\\User::factory()->create(['email' => \\$email, 'name' => \\$name, 'password' => bcrypt('password')]); " +
+            "        if (!\\$u->current_team_id) { " +
+            "            \\$team = App\\\\Models\\\\Team::factory()->personal()->create(['name' => \\$name.' Team']); " +
+            "            \\$team->members()->attach(\\$u, ['role' => App\\\\Enums\\\\TeamRole::Owner->value]); " +
+            "            \\$u->switchTeam(\\$team); " +
+            "        } " +
+            "        return \\$u; " +
+            "    }; " +
+            "    \\$owner = \\$ensureUser('e2e-owner@example.com', 'E2E Owner'); " +
+            "    \\$other = \\$ensureUser('e2e-other@example.com', 'E2E Other'); " +
+            '    \\$prod = App\\\\Models\\\\Product::first(); ' +
+            "    \\$pendingOrder = App\\\\Models\\\\Order::firstOrCreate(['session_key' => 'e2e-pending-manual-session-key'], [" +
+            "        'user_id' => \\$owner->id, " +
+            "        'status' => 'pending', " +
+            "        'payment_method' => 'manual', " +
+            "        'shipping_address' => '742 Evergreen Terrace, Springfield', " +
+            '        \'total_amount\' => \\$prod->price * 2, ' +
+            '    ]); ' +
+            "    App\\\\Models\\\\OrderItem::firstOrCreate(['order_id' => \\$pendingOrder->id, 'product_id' => \\$prod->id], [" +
+            "        'product_name' => \\$prod->name, " +
+            '        \'price\' => \\$prod->price, ' +
+            "        'quantity' => 2, " +
+            '    ]); ' +
+            "    Illuminate\\\\Support\\\\Facades\\\\Storage::disk('private')->put('digital_products/sample_guide.pdf', '%PDF-1.4 sample digital product content'); " +
+            "    \\$digitalProd = App\\\\Models\\\\Product::firstOrCreate(['slug' => 'sample-digital-guide'], [" +
+            "        'name' => 'Sample Digital Guide', " +
+            '        \'price\' => 2500, ' +
+            '        \'category_id\' => App\\\\Models\\\\Category::first()->id, ' +
+            "        'is_digital' => true, " +
+            "        'file_path' => 'digital_products/sample_guide.pdf', " +
+            '        \'stock\' => 999, ' +
+            "        'status' => 'active', " +
+            '    ]); ' +
+            "    \\$paidOrder = App\\\\Models\\\\Order::firstOrCreate(['session_key' => 'e2e-paid-digital-order-session-key'], [" +
+            "        'user_id' => \\$owner->id, " +
+            "        'status' => 'paid', " +
+            "        'payment_method' => 'manual', " +
+            "        'shipping_address' => '742 Evergreen Terrace, Springfield', " +
+            '        \'total_amount\' => 2500, ' +
+            '    ]); ' +
+            "    App\\\\Models\\\\OrderItem::firstOrCreate(['order_id' => \\$paidOrder->id, 'product_id' => \\$digitalProd->id], [" +
+            "        'product_name' => \\$digitalProd->name, " +
+            '        \'price\' => 2500, ' +
+            "        'quantity' => 1, " +
+            '    ]); ' +
+            '    return json_encode([' +
+            "        'ownerEmail' => \\$owner->email, " +
+            "        'otherEmail' => \\$other->email, " +
+            "        'pendingOrderId' => \\$pendingOrder->id, " +
+            "        'paidOrderId' => \\$paidOrder->id, " +
+            "        'digitalProductId' => \\$digitalProd->id, " +
+            '    ]); ' +
+            '});"',
         { encoding: 'utf-8' },
     ).trim();
 
-    return JSON.parse(raw);
+    const fixtures = JSON.parse(raw) as OrderFixtures;
+    fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
+    fs.writeFileSync(cacheFile, JSON.stringify(fixtures, null, 2), 'utf-8');
+
+    return fixtures;
 }
 
 test.describe('E2E Secure Orders Suite', () => {
