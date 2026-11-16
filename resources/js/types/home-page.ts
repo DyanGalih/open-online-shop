@@ -12,7 +12,7 @@ export interface Product {
 }
 
 export interface Category {
-    id: number;
+    id: string;
     name: string;
     slug: string;
 }
@@ -25,7 +25,7 @@ export interface PersonalizedState {
 
 export interface HomeSearchFilters {
     search: string | null;
-    categoryId: number | null;
+    categoryId: string | null;
 }
 
 export interface HomePageProps {

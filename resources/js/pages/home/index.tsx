@@ -31,7 +31,7 @@ export default function Index({
     const { name } = usePage<{ name: string }>().props;
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
         filters?.categoryId ?? null,
     );
     const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -102,7 +102,9 @@ export default function Index({
 
     // Client-side category filtering
     const filteredProducts = selectedCategoryId
-        ? products.filter((p) => Number(p.categoryId) === selectedCategoryId)
+        ? products.filter(
+              (p) => String(p.categoryId) === String(selectedCategoryId),
+          )
         : products;
 
     const totalCartCount = cartItems.reduce(
