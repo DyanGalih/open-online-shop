@@ -103,7 +103,7 @@ class DummyDataSeeder extends Seeder
         // Ensure Admin personal team exists
         $adminTeam = $admin->personalTeam();
         if (! $adminTeam) {
-            $existingTeam = Team::where('slug', 'admin-operations-team')->first();
+            $existingTeam = Team::withTrashed()->where('slug', 'admin-operations-team')->first();
             $adminTeam = Team::create([
                 'name' => 'Admin Operations Team',
                 ...($existingTeam ? [] : ['slug' => 'admin-operations-team']),
@@ -192,7 +192,7 @@ class DummyDataSeeder extends Seeder
             if (! $team) {
                 $teamName = $data['name']."'s Personal Team";
                 $baseSlug = Str::slug($data['name'].'-personal-team');
-                $existingTeam = Team::where('slug', $baseSlug)->first();
+                $existingTeam = Team::withTrashed()->where('slug', $baseSlug)->first();
 
                 $team = Team::create([
                     'name' => $teamName,
