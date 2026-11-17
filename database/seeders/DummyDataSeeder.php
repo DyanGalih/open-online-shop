@@ -12,7 +12,9 @@ use App\Models\ProductVariant;
 use App\Models\Review;
 use App\Models\Team;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -51,7 +53,7 @@ class DummyDataSeeder extends Seeder
         // 1. Private digital product placeholder
         $privateDisk = Storage::disk('private');
         if (! $privateDisk->exists('digital_products/sample_guide.pdf')) {
-            $mockPdfContent = "%PDF-1.4\n1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R >>\nendobj\n4 0 obj\n<< /Length 53 >>\nstream\nBT\n/F1 24 Tf\n100 700 Td\n(Sample Digital Product Content) Tj\nET\nendstream\nendobj\nxref\n0 5\n0000000000 65535 f \n0000000009 00000 n \n0000000058 00000 n \n0000000115 00000 n \n0000000206 00000 n \ntrailer\n<< /Size 5 /Root 1 0 R >>\nstartxref\n308\n%%EOF";
+            $mockPdfContent = Pdf::loadHTML('<h1>Digital Product Sample</h1><p>Sample digital content for local development and demonstration.</p>')->output();
             $privateDisk->put('digital_products/sample_guide.pdf', $mockPdfContent);
         }
 
@@ -373,138 +375,144 @@ class DummyDataSeeder extends Seeder
     {
         $this->command->info('-> Seeding Orders across all lifecycle states, Invoices & Reviews...');
 
-        $prods = $catalog['products'];
+        DB::transaction(function () use ($customers, $catalog) {
+            $prods = $catalog['products'];
 
-        // 1. Pending Order (Manual Bank Transfer awaiting payment)
-        $orderPending = Order::firstOrCreate(
-            ['session_key' => 'demo-order-pending-manual'],
-            [
-                'user_id' => $customers['customer1']->id,
-                'status' => 'pending',
-                'payment_method' => 'manual',
-                'payment_due_at' => now()->addDays(2),
-                'shipping_address' => 'Jl. Jenderal Sudirman No. 45, Jakarta Selatan 12190',
-                'total_amount' => $prods['keyboard']->price,
-            ]
-        );
-        OrderItem::firstOrCreate(
-            ['order_id' => $orderPending->id, 'product_id' => $prods['keyboard']->id],
-            ['product_name' => $prods['keyboard']->name, 'price' => $prods['keyboard']->price, 'quantity' => 1]
-        );
+            // 1. Pending Order (Manual Bank Transfer awaiting payment)
+            $orderPending = Order::firstOrCreate(
+                ['session_key' => 'demo-order-pending-manual'],
+                [
+                    'user_id' => $customers['customer1']->id,
+                    'status' => 'pending',
+                    'payment_method' => 'manual',
+                    'payment_due_at' => now()->addDays(2),
+                    'shipping_address' => 'Jl. Jenderal Sudirman No. 45, Jakarta Selatan 12190',
+                    'total_amount' => $prods['keyboard']->price,
+                ]
+            );
+            OrderItem::firstOrCreate(
+                ['order_id' => $orderPending->id, 'product_id' => $prods['keyboard']->id],
+                ['product_name' => $prods['keyboard']->name, 'price' => $prods['keyboard']->price, 'quantity' => 1]
+            );
 
-        // 2. Pending Order with Uploaded Payment Proof (Awaiting Admin Verification)
-        $orderProof = Order::firstOrCreate(
-            ['session_key' => 'demo-order-pending-proof-uploaded'],
-            [
-                'user_id' => $customers['customer2']->id,
-                'status' => 'pending',
-                'payment_method' => 'manual',
-                'payment_evidence_path' => 'payment_proofs/sample_proof.jpg',
-                'payment_due_at' => now()->addDay(),
-                'shipping_address' => 'Jl. Pemuda No. 12, Surabaya 60271',
-                'total_amount' => $prods['backpack']->price,
-            ]
-        );
-        OrderItem::firstOrCreate(
-            ['order_id' => $orderProof->id, 'product_id' => $prods['backpack']->id],
-            ['product_name' => $prods['backpack']->name, 'price' => $prods['backpack']->price, 'quantity' => 1]
-        );
+            // 2. Pending Order with Uploaded Payment Proof (Awaiting Admin Verification)
+            $orderProof = Order::firstOrCreate(
+                ['session_key' => 'demo-order-pending-proof-uploaded'],
+                [
+                    'user_id' => $customers['customer2']->id,
+                    'status' => 'pending',
+                    'payment_method' => 'manual',
+                    'payment_evidence_path' => 'payment_proofs/sample_proof.jpg',
+                    'payment_due_at' => now()->addDay(),
+                    'shipping_address' => 'Jl. Pemuda No. 12, Surabaya 60271',
+                    'total_amount' => $prods['backpack']->price,
+                ]
+            );
+            OrderItem::firstOrCreate(
+                ['order_id' => $orderProof->id, 'product_id' => $prods['backpack']->id],
+                ['product_name' => $prods['backpack']->name, 'price' => $prods['backpack']->price, 'quantity' => 1]
+            );
 
-        // 3. Paid Order (Digital Product with invoice readiness and secure download)
-        $orderPaid = Order::firstOrCreate(
-            ['session_key' => 'demo-order-paid-digital'],
-            [
-                'user_id' => $customers['customer1']->id,
-                'status' => 'paid',
-                'payment_method' => 'manual',
-                'shipping_address' => 'Jl. Jenderal Sudirman No. 45, Jakarta Selatan 12190',
-                'total_amount' => $prods['handbook']->price,
-            ]
-        );
-        OrderItem::firstOrCreate(
-            ['order_id' => $orderPaid->id, 'product_id' => $prods['handbook']->id],
-            ['product_name' => $prods['handbook']->name, 'price' => $prods['handbook']->price, 'quantity' => 1]
-        );
+            // 3. Paid Order (Digital Product with invoice readiness and secure download)
+            $orderPaid = Order::firstOrCreate(
+                ['session_key' => 'demo-order-paid-digital'],
+                [
+                    'user_id' => $customers['customer1']->id,
+                    'status' => 'paid',
+                    'payment_method' => 'manual',
+                    'shipping_address' => 'Jl. Jenderal Sudirman No. 45, Jakarta Selatan 12190',
+                    'total_amount' => $prods['handbook']->price,
+                ]
+            );
+            OrderItem::firstOrCreate(
+                ['order_id' => $orderPaid->id, 'product_id' => $prods['handbook']->id],
+                ['product_name' => $prods['handbook']->name, 'price' => $prods['handbook']->price, 'quantity' => 1]
+            );
 
-        // 4. Processing Order (Midtrans Online Payment)
-        $orderProcessing = Order::firstOrCreate(
-            ['session_key' => 'demo-order-processing-midtrans'],
-            [
-                'user_id' => $customers['customer3']->id,
-                'status' => 'processing',
-                'payment_method' => 'midtrans',
-                'shipping_address' => 'Jl. Asia Afrika No. 88, Bandung 40111',
-                'total_amount' => $prods['shirt']->price + $prods['mug']->price,
-            ]
-        );
-        OrderItem::firstOrCreate(
-            ['order_id' => $orderProcessing->id, 'product_id' => $prods['shirt']->id],
-            ['product_name' => $prods['shirt']->name, 'price' => $prods['shirt']->price, 'quantity' => 1]
-        );
-        OrderItem::firstOrCreate(
-            ['order_id' => $orderProcessing->id, 'product_id' => $prods['mug']->id],
-            ['product_name' => $prods['mug']->name, 'price' => $prods['mug']->price, 'quantity' => 1]
-        );
+            // 4. Processing Order (Midtrans Online Payment)
+            $orderProcessing = Order::firstOrCreate(
+                ['session_key' => 'demo-order-processing-midtrans'],
+                [
+                    'user_id' => $customers['customer3']->id,
+                    'status' => 'processing',
+                    'payment_method' => 'midtrans',
+                    'shipping_address' => 'Jl. Asia Afrika No. 88, Bandung 40111',
+                    'total_amount' => $prods['shirt']->price + $prods['mug']->price,
+                ]
+            );
+            OrderItem::firstOrCreate(
+                ['order_id' => $orderProcessing->id, 'product_id' => $prods['shirt']->id],
+                ['product_name' => $prods['shirt']->name, 'price' => $prods['shirt']->price, 'quantity' => 1]
+            );
+            OrderItem::firstOrCreate(
+                ['order_id' => $orderProcessing->id, 'product_id' => $prods['mug']->id],
+                ['product_name' => $prods['mug']->name, 'price' => $prods['mug']->price, 'quantity' => 1]
+            );
 
-        // 5. Shipped Order (Assigned Tracking Carrier)
-        $orderShipped = Order::firstOrCreate(
-            ['session_key' => 'demo-order-shipped-jnt'],
-            [
-                'user_id' => $customers['customer4']->id,
-                'status' => 'shipped',
-                'payment_method' => 'manual',
-                'shipping_address' => 'Jl. Gatot Subroto No. 23, Medan 20112',
-                'total_amount' => $prods['planner']->price * 2,
-            ]
-        );
-        OrderItem::firstOrCreate(
-            ['order_id' => $orderShipped->id, 'product_id' => $prods['planner']->id],
-            ['product_name' => $prods['planner']->name, 'price' => $prods['planner']->price, 'quantity' => 2]
-        );
+            // 5. Shipped Order (Assigned Tracking Carrier)
+            $orderShipped = Order::firstOrCreate(
+                ['session_key' => 'demo-order-shipped-jnt'],
+                [
+                    'user_id' => $customers['customer4']->id,
+                    'status' => 'shipped',
+                    'payment_method' => 'manual',
+                    'shipping_address' => 'Jl. Gatot Subroto No. 23, Medan 20112',
+                    'total_amount' => $prods['planner']->price * 2,
+                ]
+            );
+            OrderItem::firstOrCreate(
+                ['order_id' => $orderShipped->id, 'product_id' => $prods['planner']->id],
+                ['product_name' => $prods['planner']->name, 'price' => $prods['planner']->price, 'quantity' => 2]
+            );
 
-        // 6. Delivered Order (Completed with Customer Reviews)
-        $orderDelivered = Order::firstOrCreate(
-            ['session_key' => 'demo-order-delivered-completed'],
-            [
-                'user_id' => $customers['customer2']->id,
-                'status' => 'delivered',
-                'payment_method' => 'manual',
-                'shipping_address' => 'Jl. Pemuda No. 12, Surabaya 60271',
-                'total_amount' => $prods['headphones']->price,
-            ]
-        );
-        OrderItem::firstOrCreate(
-            ['order_id' => $orderDelivered->id, 'product_id' => $prods['headphones']->id],
-            ['product_name' => $prods['headphones']->name, 'price' => $prods['headphones']->price, 'quantity' => 1]
-        );
+            // 6. Delivered Order (Completed with Customer Reviews)
+            $orderDelivered = Order::firstOrCreate(
+                ['session_key' => 'demo-order-delivered-completed'],
+                [
+                    'user_id' => $customers['customer2']->id,
+                    'status' => 'delivered',
+                    'payment_method' => 'manual',
+                    'shipping_address' => 'Jl. Pemuda No. 12, Surabaya 60271',
+                    'total_amount' => $prods['headphones']->price,
+                ]
+            );
+            OrderItem::firstOrCreate(
+                ['order_id' => $orderDelivered->id, 'product_id' => $prods['headphones']->id],
+                ['product_name' => $prods['headphones']->name, 'price' => $prods['headphones']->price, 'quantity' => 1]
+            );
 
-        // Seed customer product reviews
-        Review::firstOrCreate(
-            ['user_id' => $customers['customer2']->id, 'product_id' => $prods['headphones']->id],
-            [
-                'rating' => 5,
-                'comment' => 'Outstanding sound quality and deep active noise cancellation. Perfect for working remotely!',
-            ]
-        );
+            // Seed customer product reviews
+            Review::firstOrCreate(
+                ['user_id' => $customers['customer2']->id, 'product_id' => $prods['headphones']->id],
+                [
+                    'rating' => 5,
+                    'comment' => 'Outstanding sound quality and deep active noise cancellation. Perfect for working remotely!',
+                ]
+            );
 
-        Review::firstOrCreate(
-            ['user_id' => $customers['customer1']->id, 'product_id' => $prods['keyboard']->id],
-            [
-                'rating' => 5,
-                'comment' => 'Crisp tactile keystrokes and durable wireless battery life. Highly recommended!',
-            ]
-        );
+            Review::firstOrCreate(
+                ['user_id' => $customers['customer1']->id, 'product_id' => $prods['keyboard']->id],
+                [
+                    'rating' => 5,
+                    'comment' => 'Crisp tactile keystrokes and durable wireless battery life. Highly recommended!',
+                ]
+            );
 
-        // 7. Cancelled Order
-        Order::firstOrCreate(
-            ['session_key' => 'demo-order-cancelled'],
-            [
-                'user_id' => $customers['customer5']->id,
-                'status' => 'cancelled',
-                'payment_method' => 'manual',
-                'shipping_address' => 'Jl. Malioboro No. 101, Yogyakarta 55271',
-                'total_amount' => $prods['mug']->price,
-            ]
-        );
+            // 7. Cancelled Order
+            $orderCancelled = Order::firstOrCreate(
+                ['session_key' => 'demo-order-cancelled'],
+                [
+                    'user_id' => $customers['customer5']->id,
+                    'status' => 'cancelled',
+                    'payment_method' => 'manual',
+                    'shipping_address' => 'Jl. Malioboro No. 101, Yogyakarta 55271',
+                    'total_amount' => $prods['mug']->price,
+                ]
+            );
+            OrderItem::firstOrCreate(
+                ['order_id' => $orderCancelled->id, 'product_id' => $prods['mug']->id],
+                ['product_name' => $prods['mug']->name, 'price' => $prods['mug']->price, 'quantity' => 1]
+            );
+        });
     }
 }
