@@ -26,9 +26,9 @@ class DummyDataSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->command?->info('=========================================');
-        $this->command?->info('  Starting Manual Dummy Data Seeding     ');
-        $this->command?->info('=========================================');
+        $this->command->info('=========================================');
+        $this->command->info('  Starting Manual Dummy Data Seeding     ');
+        $this->command->info('=========================================');
 
         $this->ensureSampleStorageAssets();
         $this->seedAdminUser();
@@ -36,9 +36,9 @@ class DummyDataSeeder extends Seeder
         $catalog = $this->seedCatalog();
         $this->seedOrdersAndReviews($customers, $catalog);
 
-        $this->command?->info('=========================================');
-        $this->command?->info('  Dummy Data Seeding Completed Cleanly!  ');
-        $this->command?->info('=========================================');
+        $this->command->info('=========================================');
+        $this->command->info('  Dummy Data Seeding Completed Cleanly!  ');
+        $this->command->info('=========================================');
     }
 
     /**
@@ -46,7 +46,7 @@ class DummyDataSeeder extends Seeder
      */
     private function ensureSampleStorageAssets(): void
     {
-        $this->command?->info('-> Provisioning synthetic mock storage files...');
+        $this->command->info('-> Provisioning synthetic mock storage files...');
 
         // 1. Private digital product placeholder
         $privateDisk = Storage::disk('private');
@@ -69,7 +69,7 @@ class DummyDataSeeder extends Seeder
      */
     private function seedAdminUser(): void
     {
-        $this->command?->info('-> Seeding Administrator account & team...');
+        $this->command->info('-> Seeding Administrator account & team...');
 
         // Ensure Admin permissions and role exist
         $permissions = [
@@ -122,7 +122,7 @@ class DummyDataSeeder extends Seeder
      */
     private function seedCustomerPersonas(): array
     {
-        $this->command?->info('-> Seeding Customer accounts, personal teams & shipping addresses...');
+        $this->command->info('-> Seeding Customer accounts, personal teams & shipping addresses...');
 
         $personas = [
             'customer1' => [
@@ -228,7 +228,7 @@ class DummyDataSeeder extends Seeder
      */
     private function seedCatalog(): array
     {
-        $this->command?->info('-> Seeding Categories, Products, and Product Variants...');
+        $this->command->info('-> Seeding Categories, Products, and Product Variants...');
 
         $categoryDefinitions = [
             'electronics' => ['name' => 'Electronics', 'slug' => 'electronics'],
@@ -371,7 +371,7 @@ class DummyDataSeeder extends Seeder
      */
     private function seedOrdersAndReviews(array $customers, array $catalog): void
     {
-        $this->command?->info('-> Seeding Orders across all lifecycle states, Invoices & Reviews...');
+        $this->command->info('-> Seeding Orders across all lifecycle states, Invoices & Reviews...');
 
         $prods = $catalog['products'];
 
