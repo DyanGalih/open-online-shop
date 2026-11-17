@@ -86,7 +86,7 @@ class DummyDataSeeder extends Seeder
         }
 
         $adminRole = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
-        $adminRole->syncPermissions($permissions);
+        $adminRole->givePermissionTo($permissions);
 
         $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],
@@ -101,11 +101,12 @@ class DummyDataSeeder extends Seeder
         $admin->assignRole('admin');
 
         // Ensure Admin personal team exists
-        $adminTeam = Team::where('name', 'Admin Operations Team')->first();
+        $adminTeam = $admin->personalTeam();
         if (! $adminTeam) {
+            $existingTeam = Team::where('slug', 'admin-operations-team')->first();
             $adminTeam = Team::create([
                 'name' => 'Admin Operations Team',
-                'slug' => 'admin-operations-team',
+                'slug' => $existingTeam ? Team::generateUniqueTeamSlug('Admin Operations Team') : 'admin-operations-team',
                 'is_personal' => true,
             ]);
         }
@@ -187,14 +188,15 @@ class DummyDataSeeder extends Seeder
             );
 
             // Setup personal team
-            $teamName = $data['name']."'s Personal Team";
-            $teamSlug = Str::slug($data['name'].'-personal-team');
-
-            $team = Team::where('slug', $teamSlug)->first();
+            $team = $user->personalTeam();
             if (! $team) {
+                $teamName = $data['name']."'s Personal Team";
+                $baseSlug = Str::slug($data['name'].'-personal-team');
+                $existingTeam = Team::where('slug', $baseSlug)->first();
+
                 $team = Team::create([
                     'name' => $teamName,
-                    'slug' => $teamSlug,
+                    'slug' => $existingTeam ? Team::generateUniqueTeamSlug($teamName) : $baseSlug,
                     'is_personal' => true,
                 ]);
             }
@@ -400,7 +402,7 @@ class DummyDataSeeder extends Seeder
                 ['session_key' => 'demo-order-pending-proof-uploaded'],
                 [
                     'user_id' => $customers['customer2']->id,
-                    'status' => 'pending',
+                    'status' => 'awaiting_verification',
                     'payment_method' => 'manual',
                     'payment_evidence_path' => 'payment_proofs/sample_proof.jpg',
                     'payment_due_at' => now()->addDay(),
@@ -497,6 +499,16 @@ class DummyDataSeeder extends Seeder
                     'comment' => 'Crisp tactile keystrokes and durable wireless battery life. Highly recommended!',
                 ]
             );
+
+            // Recalculate rating summaries for reviewed products
+            foreach ([$prods['headphones'], $prods['keyboard']] as $reviewedProduct) {
+                $avg = (float) (Review::where('product_id', $reviewedProduct->id)->avg('rating') ?: 0.0);
+                $count = Review::where('product_id', $reviewedProduct->id)->count();
+                $reviewedProduct->update([
+                    'rating' => round($avg, 2),
+                    'reviews_count' => $count,
+                ]);
+            }
 
             // 7. Cancelled Order
             $orderCancelled = Order::firstOrCreate(
