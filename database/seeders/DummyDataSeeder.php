@@ -106,7 +106,7 @@ class DummyDataSeeder extends Seeder
             $existingTeam = Team::where('slug', 'admin-operations-team')->first();
             $adminTeam = Team::create([
                 'name' => 'Admin Operations Team',
-                'slug' => $existingTeam ? Team::generateUniqueTeamSlug('Admin Operations Team') : 'admin-operations-team',
+                ...($existingTeam ? [] : ['slug' => 'admin-operations-team']),
                 'is_personal' => true,
             ]);
         }
@@ -196,7 +196,7 @@ class DummyDataSeeder extends Seeder
 
                 $team = Team::create([
                     'name' => $teamName,
-                    'slug' => $existingTeam ? Team::generateUniqueTeamSlug($teamName) : $baseSlug,
+                    ...($existingTeam ? [] : ['slug' => $baseSlug]),
                     'is_personal' => true,
                 ]);
             }
